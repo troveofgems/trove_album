@@ -2,8 +2,8 @@ import React, {useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
-import {GalleryView} from "./components/Gallery/View/GalleryView";
 import {NavBar} from "./components/NavBar/NavBar";
+import {Outlet} from "react-router-dom";
 
 function App() {
   const [currentView, setCurrentView] = useState("Pets");
@@ -18,11 +18,8 @@ function App() {
             <NavBar onViewChange={changeViewTo} />
         </header>
         <main>
-            <GalleryView currentView={currentView} />
+            <Outlet context={{ currentView }}/>
         </main>
-        {/*<footer>
-            Footer
-        </footer>*/}
     </div>
   );
 }

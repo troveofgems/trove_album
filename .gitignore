@@ -1,0 +1,6 @@
+.idea
+
+/node_modules/
+/config/env/*
+
+/db/data/mocks/user.mocks.js

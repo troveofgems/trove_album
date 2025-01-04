@@ -19,11 +19,8 @@ export const photo = {
         url: "",
         filename: ""
     },
-    share: {
-        url: "",
-        text: "",
-        title: ""
-    }
+    tags: [],
+    order: 0
 };
 
 export const album = {
