@@ -1,9 +1,11 @@
 import React, {useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 
 import {NavBar} from "./components/NavBar/NavBar";
 import {Outlet} from "react-router-dom";
+import {ToastContainer} from "react-toastify";
 
 function App() {
   const [currentView, setCurrentView] = useState("Pets");
@@ -20,6 +22,7 @@ function App() {
         <main>
             <Outlet context={{ currentView }}/>
         </main>
+        <ToastContainer />
     </div>
   );
 }

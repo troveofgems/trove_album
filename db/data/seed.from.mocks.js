@@ -3,28 +3,13 @@ import User from "../models/user.model.js";
 import {User_Mocks} from "./mocks/user.mocks.js";
 import Photo from "../models/photo.model.js";
 import connectDB from "../db.config.js";
-import {Photo_Mocks} from "./mocks/photos.mocks.js";
-
-dotenv.config({ path: `./config/env/.env.development.keys` });
+dotenv.config({ path: `./config/env/.env.development` });
 connectDB();
 
 const importData = async() => {
     try {
         await User.deleteMany();
-        await Photo.deleteMany();
-
-        const createdUsers = await User.insertMany(User_Mocks);
-        const dkgrecoAdminUser = createdUsers[0]._id;
-
-        const samplePhotos = Photo_Mocks.map((photo) => {
-           return {
-               ...photo,
-               user: dkgrecoAdminUser
-           }
-        });
-
-        const createdPhotos = await Photo.insertMany(samplePhotos);
-
+        await User.insertMany(User_Mocks);
         console.log("Data Imported!");
         process.exit();
     } catch(err) {

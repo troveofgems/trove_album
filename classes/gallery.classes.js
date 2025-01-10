@@ -1,6 +1,5 @@
 export class Photo {
-    constructor(id, src, alt, width, height, srcSet, captions, download, tags, order) {
-        this.id = id;
+    constructor({src, alt, width, height, srcSet = null, captions, download, tags, order = null, user = null}) {
         this.src = src;
         this.alt = alt;
         this.width = width;
@@ -10,13 +9,11 @@ export class Photo {
         this.download = download;
         this.tags = tags;
         this.order = order;
+        this.user = user;
+        this.cloudinary = null;
     }
 
     //Getters
-    getId() {
-        return this.id;
-    }
-
     getSrc() {
         return this.src;
     }
@@ -53,17 +50,20 @@ export class Photo {
         return this.order;
     }
 
+    getUser() {
+        return this.user;
+    }
+
+    getCloudinary() {
+        return this.cloudinary;
+    }
+
     // Validator
     _nonEmptyValueRequired(val, propName) {
         if(val === "") throw `${propName} is required`;
     }
 
     //Setters
-    setId(id) {
-        this._nonEmptyValueRequired(id, "id");
-        this.id = id;
-    }
-
     setSrc(src) {
         this._nonEmptyValueRequired(src, "src");
         this.src = src;
@@ -106,7 +106,17 @@ export class Photo {
 
     setOrder(order){
         this._nonEmptyValueRequired(order, "order");
-        this.order = order;
+        return this.order = order;
+    }
+
+    setUser(user){
+        this._nonEmptyValueRequired(user, "user");
+        return this.user = user;
+    }
+
+    setCloudinary(cloudinary){
+        this._nonEmptyValueRequired(cloudinary, "cloudinary");
+        return this.cloudinary = cloudinary;
     }
 }
 

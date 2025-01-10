@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const photoSchema = new mongoose.Schema({
     src: {
-      type: Buffer,
+      type: String,
       required: true,
     },
     alt: {
@@ -52,6 +52,12 @@ const photoSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       ref: "User"
+    },
+    cloudinary: {
+        type: {
+            url: {type: String},
+            publicId: {type: String}
+        }
     }
 }, { timestamps: true });
 

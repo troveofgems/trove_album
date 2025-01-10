@@ -9,18 +9,27 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "seed:import": "node db/data/seed.from.mocks.js",
     "seed:destroy": "node db/data/seed.from.mocks.js -d",
-    "start:server": "NODE_ENV=production node main",
-    "dev:server": "NODE_ENV=development nodemon main",
+    "start:server": "NODE_ENV=production node server.js",
+    "dev:server": "NODE_ENV=development nodemon server.js",
     "start:client": "npm run start --prefix client",
-    "build:client": "npm run build --prefix client"
+    "build:client": "npm run build --prefix client",
+    "start:dev": "concurrently \"npm run dev:server\" \"npm run start:client\""
   },
   "private": true,
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.5.1",
     "concurrently": "^9.1.2",
+    "cookie-parser": "^1.4.7",
     "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "hpp": "^0.2.3",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.3",
-    "multer": "^1.4.5-lts.1"
+    "multer": "^1.4.5-lts.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "dotenv": "^16.4.7",

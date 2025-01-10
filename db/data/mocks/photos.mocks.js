@@ -1,7 +1,4 @@
 import * as url from "node:url";
-
-/*        srcSet: [],*/
-
 export const Photo_Mocks = [
     {
         src: URL("../imgs/gma_gpa.jpg"),
