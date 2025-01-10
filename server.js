@@ -1,5 +1,5 @@
-import dotenv from 'dotenv';
-dotenv.config({ path: `./config/env/.env.${process.env.NODE_ENV}` });
+/*import dotenv from 'dotenv';
+dotenv.config({ path: `./config/env/.env.${process.env.NODE_ENV}` });*/
 import express from 'express';
 import connectDB from "./db/db.config.js";
 import {setApplicationStandardsAndLimits} from "./config/standards/set.application.standards.js";

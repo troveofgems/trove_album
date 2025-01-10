@@ -9,7 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "seed:import": "node db/data/seed.from.mocks.js",
     "seed:destroy": "node db/data/seed.from.mocks.js -d",
-    "start:server": "NODE_ENV=production node server.js",
+    "start:server": "node server.js",
     "dev:server": "NODE_ENV=development nodemon server.js",
     "start:client": "npm run start --prefix client",
     "build:client": "npm run build --prefix client",
