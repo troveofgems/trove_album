@@ -6,6 +6,9 @@ import {setApplicationStandardsAndLimits} from "./config/standards/set.applicati
 import {enableApplicationSecurity} from "./config/security/enable.app.security.js";
 import {mountMainRouter} from "./routes/main.router.js";
 
+import path from "path";
+
+
 const
     connections = { appServer: null, dbConn: null },
     port = process.env.PORT || 3003,
@@ -15,6 +18,17 @@ connectDB()
     .then(() => {
         setApplicationStandardsAndLimits(app);
         enableApplicationSecurity(app);
+
+        if(process.env.NODE_ENV === "production") {
+            app.use(express.static(path.join(__dirname, "/client/build")));
+            app.get("*", (req, res, next) =>
+            res.sendFile(path.resolve(__dirname, "client", "build", "index.html")));
+        } else {
+            app.get("/", (req, res, next) =>
+                res.json({ message: "API Up and Running." })
+            )
+        }
+
         mountMainRouter(app);
         app.listen(port, () => {
             console.log(`✨ Photo Album Up & Running on port: ${port} ✨`);

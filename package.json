@@ -13,7 +13,8 @@
     "dev:server": "NODE_ENV=development nodemon server.js",
     "start:client": "npm run start --prefix client",
     "build:client": "npm run build --prefix client",
-    "start:dev": "concurrently \"npm run dev:server\" \"npm run start:client\""
+    "start:dev": "concurrently \"npm run dev:server\" \"npm run start:client\"",
+    "build:onRender": "npm install && npm install --prefix client && npm run build --prefix client"
   },
   "private": true,
   "dependencies": {
