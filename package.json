@@ -10,7 +10,7 @@
     "seed:import": "node db/data/seed.from.mocks.js",
     "seed:destroy": "node db/data/seed.from.mocks.js -d",
     "dev:server": "dotenvx run -f ./server/config/env/.env.development -- nodemon server/server.js",
-    "start:server": "node server/server.js",
+    "start:server": "dotenvx run -f ./server/config/env/.env.production -- node server/server.js",
     "start:client": "npm run start --prefix client",
     "build:client": "npm run build --prefix client",
     "start:dev": "concurrently \"npm run dev:server\" \"npm run start:client\"",

@@ -4,9 +4,12 @@ import {setApplicationStandardsAndLimits} from "./config/standards/set.applicati
 import {enableApplicationSecurity} from "./config/security/enable.app.security.js";
 import {mountMainRouter} from "./routes/main.router.js";
 
-import path from "path";
+import path, { dirname } from "path";
+import { fileURLToPath } from "url";
 
 const
+    __filename = fileURLToPath(import.meta.url),
+    __dirname = dirname(__filename),
     connections = { appServer: null, dbConn: null },
     port = process.env.PORT || 3003,
     app = express();
@@ -15,7 +18,6 @@ connectDB()
     .then(() => {
         setApplicationStandardsAndLimits(app);
         enableApplicationSecurity(app);
-
         mountMainRouter(app);
 
         if(process.env.NODE_ENV === "production") {
