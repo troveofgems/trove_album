@@ -24,7 +24,6 @@ connectDB()
         if(process.env.NODE_ENV === "production") {
             app.use(express.static(path.join(__dirname, "..", "/client/build")));
             app.get("*", (req, res, next) => {
-                console.log("Serve the following file? ", path.resolve(__dirname, "..", "client", "build", "index.html"));
                 return res.sendFile(path.resolve(__dirname, "..", "client", "build", "index.html"))
             });
         } else {
