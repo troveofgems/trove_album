@@ -18,7 +18,7 @@ const
 connectDB()
     .then(() => {
         setApplicationStandardsAndLimits(app);
-        enableApplicationSecurity(app);
+        //enableApplicationSecurity(app);
         mountMainRouter(app);
 
         if(process.env.NODE_ENV === "production") {
