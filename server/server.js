@@ -6,6 +6,7 @@ import {mountMainRouter} from "./routes/main.router.js";
 
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
+import {errorHandler, notFound} from "./middleware/error.middleware.js";
 
 const
     __filename = fileURLToPath(import.meta.url),
@@ -22,12 +23,18 @@ connectDB()
 
         if(process.env.NODE_ENV === "production") {
             app.use(express.static(path.join(__dirname, "..", "/client/build")));
-            app.get("*", (req, res, next) =>
-            res.sendFile(path.resolve(__dirname, "..", "client", "build", "index.html")));
+            app.get("*", (req, res, next) => {
+                console.log("Serve the following file? ", path.resolve(__dirname, "..", "client", "build", "index.html"));
+                return res.sendFile(path.resolve(__dirname, "..", "client", "build", "index.html"))
+            });
         } else {
             app.get("/", (req, res, next) =>
                 res.json({ message: "API Up and Running." })
             );
+
+            // DO NOT MODIFY CODE BELOW THIS:
+            app.use(notFound);
+            app.use(errorHandler);
         }
 
         app.listen(port, () => {

@@ -32,10 +32,7 @@ export const mountMainRouter = (app) => {
         app.use(`${apiRoute.route}`, apiRoute.routeLoader);
     });
 
-    // DO NOT MODIFY CODE BELOW THIS:
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-    app.use(notFound);
-    app.use(errorHandler);
 
     return app;
 }

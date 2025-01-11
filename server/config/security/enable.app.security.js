@@ -11,7 +11,28 @@ const limiter = rateLimit({
 })
 
 export const enableApplicationSecurity = (app) => {
-    app.use(helmet());
+    const cspConfig = {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: [
+                "'self'",
+                'https://fonts.googleapis.com'
+            ],
+            scriptSrc: ["'self'"],
+            fontSrc: [
+                "'self'",
+                'https://fonts.gstatic.com'
+            ],
+            imgSrc: [
+                "'self'",
+                'https://res.cloudinary.com'
+            ]
+        },
+    };
+
+    app.use(helmet({
+        contentSecurityPolicy: cspConfig,
+    }));
     if(process.env.NODE_ENV === 'development') {
         console.log("===========SECURITY PACKAGES============");
         console.log("Enabled: Helmet");
