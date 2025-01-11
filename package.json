@@ -15,7 +15,7 @@
     "build:client": "npm run build --prefix client",
     "start:dev": "concurrently \"npm run dev:server\" \"npm run start:client\"",
     "build:onRender": "npm install && npm install --prefix client && npm run build --prefix client",
-    "start:onRender": "concurrently \"npm run start:server\" \"npm run start:client\""
+    "start:onRender": "npm run start:server"
   },
   "private": true,
   "dependencies": {
