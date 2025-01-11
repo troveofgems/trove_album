@@ -4,6 +4,7 @@
   "private": true,
   "description": "Front-end For Serving Images from the Pet Photo Album",
   "dependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@dnd-kit/core": "^6.3.1",
     "@reduxjs/toolkit": "^2.5.0",
     "bootstrap": "^5.3.3",
@@ -43,9 +44,5 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:5000",
-  "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "@babel/plugin-transform-private-property-in-object": "^7.25.9"
-  }
+  "proxy": "http://localhost:5000"
 }
