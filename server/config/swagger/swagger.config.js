@@ -13,18 +13,16 @@ const
                 title: 'ToG Photo Gallery API',
                 version: '1.0.0',
                 description: 'Trove of Gems Photo Gallery API Documentation',
+                license: {
+                    name: "MIT",
+                    url: "https://www.thetroveofgems.tech"
+                },
                 contact: {
-                    name: 'Dustin Greco'
+                    name: 'Dustin Greco',
+                    url: "https://www.thetroveofgems.tech",
+                    email: "info@thecodebuzz.com"
                 },
             },
-            servers: [
-                {
-                    url: process.env.NODE_ENV === "development" ? ('http://localhost:5000/') :
-                        ('https://www.photo-album.thetroveofgems.tech'),
-                    name: process.env.NODE_ENV === "development" ? ('Development') :
-                        ('Production')
-                }
-            ],
             components: {
                 securitySchemes: {
                     basicAuth: {
@@ -37,7 +35,15 @@ const
                 }
             }
         },
-        apis: [path.resolve(__dirname, "..", "..", "routes", "v1", "*.routes.js"), './routes/v1/*.routes.js'],
+        servers: [
+            {
+                url: process.env.NODE_ENV === "development" ? ('http://localhost:5000/') :
+                    ('https://www.photo-album.thetroveofgems.tech'),
+                name: process.env.NODE_ENV === "development" ? ('Development') :
+                    ('Production')
+            }
+        ],
+        apis: [`${path.resolve(__dirname, "..", "..", "routes", "v1", "*.routes.js")}`],
     };
 
 
