@@ -4,6 +4,7 @@
 server/config/env
 server/db/data/mocks/user.mocks.js
 
+/db/data
 /db/data/mocks/user.mocks.js
 
 archive
