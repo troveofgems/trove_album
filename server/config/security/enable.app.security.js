@@ -29,7 +29,6 @@ export const enableApplicationSecurity = (app) => {
             imgSrc: [
                 "'self'",
                 'https://res.cloudinary.com',
-                'https://www.photo-album.thetroveofgems.tech'
             ]
         },
     };
