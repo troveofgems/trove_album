@@ -6,7 +6,7 @@ import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
-import AmberSap from "../../assets/images/logos/raw_amber.jpg";
+import LouPainting from "../../assets/images/logos/lou_painting.jpg";
 
 import { Link } from "react-router-dom";
 import {useSelector, useDispatch} from "react-redux";
@@ -36,7 +36,7 @@ export const NavBar = ({ onViewChange }) => {
         <Navbar expand="lg" className="bg-body-tertiary w-100 mb-5">
             <Container fluid>
                 <Navbar.Brand href="/" className="bg-white custom-brand">
-                    <img src={`${AmberSap}`} alt={"Alt"} width={100} height={100} className={"custom-brand"}/>
+                    <img src={`${LouPainting}`} alt={"Alt"} width={100} height={110} className={"custom-brand"}/>
                 </Navbar.Brand>
                 <Navbar.Toggle aria-controls="navbarScroll" />
                 <Navbar.Collapse id="navbarScroll">
