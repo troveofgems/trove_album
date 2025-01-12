@@ -8,43 +8,69 @@ const
     __dirname = dirname(__filename),
     swaggerOptions = {
         swaggerDefinition: {
-            openApi: '3.0.0',
+            openapi: "3.1.1",
             info: {
                 title: 'ToG Photo Gallery API',
-                version: '1.0.0',
                 description: 'Trove of Gems Photo Gallery API Documentation',
+                termsOfService: "",
+                contact: {
+                    name: 'Dustin Greco',
+                    url: "https://www.thetroveofgems.tech",
+                    email: "dkgreco@thetroveofgems.tech"
+                },
                 license: {
                     name: "MIT",
                     url: "https://www.thetroveofgems.tech"
                 },
-                contact: {
-                    name: 'Dustin Greco',
-                    url: "https://www.thetroveofgems.tech",
-                    email: "info@thecodebuzz.com"
-                },
+                version: '0.0.1',
             },
+            servers: [
+                {
+                    url: process.env.NODE_ENV === "development" ? ('http://localhost:5000/') :
+                        ('https://www.photo-album.thetroveofgems.tech'),
+                    description: process.env.NODE_ENV === "development" ? ('Development Server') :
+                        ('Production Server')
+                }
+            ],
             components: {
                 securitySchemes: {
-                    basicAuth: {
-                        type: "http"
+                    cookieAuth: {
+                        type: "apiKey",
+                        in: "cookie",
+                        name: "JSESSIONID"
                     }
-                },
-                scheme: "basic",
-                security: {
-                    basicAuth: []
                 }
-            }
+            },
         },
-        servers: [
-            {
-                url: process.env.NODE_ENV === "development" ? ('http://localhost:5000/') :
-                    ('https://www.photo-album.thetroveofgems.tech'),
-                name: process.env.NODE_ENV === "development" ? ('Development') :
-                    ('Production')
-            }
-        ],
-        apis: [`${path.resolve(__dirname, "..", "..", "routes", "v1", "*.routes.js")}`],
+        apis: [`${path.resolve(__dirname, "..", "..", "routes", "v1", "*.routes.js")}`]
     };
 
 
-export const swaggerDocs = swaggerJsDoc(swaggerOptions);
+export const swaggerDocs = swaggerJsDoc({
+    encoding: "utf-8",
+    swaggerDefinition: swaggerOptions.swaggerDefinition,
+    definition: {},
+    apis: swaggerOptions.apis
+});
+
+
+
+/*
+
+
+,
+        definition: {},
+
+components: {
+    securitySchemes: {
+        basicAuth: {
+            type: "http"
+        }
+    },
+    scheme: "basic",
+        security: {
+        basicAuth: []
+    }
+},
+
+*/

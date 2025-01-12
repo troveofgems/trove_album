@@ -5,7 +5,6 @@ import { default as GalleryRoutes } from "./v1/gallery.routes.js";
 import { default as OnRenderRoutes } from "./v1/render.routes.js";
 
 import {swaggerDocs} from "../config/swagger/swagger.config.js";
-import {notFound, errorHandler} from "../middleware/error.middleware.js";
 
 export const mountMainRouter = (app) => {
     const
@@ -32,7 +31,7 @@ export const mountMainRouter = (app) => {
         app.use(`${apiRoute.route}`, apiRoute.routeLoader);
     });
 
-    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, { explorer: false, customCss: 'svg { height: 0; width: 0; }' }));
 
     return app;
 }
