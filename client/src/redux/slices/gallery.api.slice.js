@@ -29,6 +29,13 @@ export const galleryApiSlice = apiSlice.injectEndpoints({
                 body: updates
             })
         }),
+        updatePhotoPatch: builder.mutation({
+            query: ({ photoId, updates }) => ({
+                url: `${GALLERY_URL}/${photoId}`,
+                method: "PATCH",
+                body: updates
+            })
+        }),
         deletePhoto: builder.mutation({
             query: ({ photoId }) => ({
                 url: `${GALLERY_URL}/${photoId}`,

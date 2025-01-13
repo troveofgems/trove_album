@@ -3,7 +3,7 @@ export const BASE_URL = "";
 
 // Redux to BE URL Paths
 export const USER_URL = "/v1/api/auth";
-export const GALLERY_URL = "/v1/api/gallery";
+export const GALLERY_URL = "/v1/api/gallery/photos";
 //export const HEALTH_URL = "/v1/api/onRender";
 
 // Application Errors
