@@ -19,11 +19,17 @@ const authRoutes = express.Router();
  *           type: string
  *         required: true
  *         description: Login Account Email
+ *       - in: body
+ *         name: password
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Login Account Password
  *     responses:
  *       '200':
  *         description: A successful response
  *       '404':
- *         description: Employee not found
+ *         description: User not found
  *       '500':
  *         description: Internal server error
  */

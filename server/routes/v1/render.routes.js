@@ -5,7 +5,7 @@ const onRenderRouter = express.Router();
 
 /**
  * @swagger
- * /v1/onRender/health-check:
+ * /v1/api/onRender/health-check:
  *   get:
  *     tags:
  *      - Application Health Check
