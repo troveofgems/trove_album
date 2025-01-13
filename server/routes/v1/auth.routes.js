@@ -6,7 +6,7 @@ const authRoutes = express.Router();
 
 /**
  * @swagger
- * /v1/auth/login:
+ * /v1/api/auth/login:
  *   post:
  *     tags:
  *      - Authentication
@@ -33,7 +33,7 @@ authRoutes
 
 /**
  * @swagger
- * /v1/auth/logout:
+ * /v1/api/auth/logout:
  *   post:
  *     tags:
  *      - Authentication
