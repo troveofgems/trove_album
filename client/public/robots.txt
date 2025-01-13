@@ -1,3 +1,7 @@
+# Disallow ChatGPT
+User-agent: GPTbot
+Disallow: /
+
 # https://www.robotstxt.org/robotstxt.html
-User-agent: *
+User-agent: Google
 Disallow:
