@@ -1,12 +1,19 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {Table} from "react-bootstrap";
 import {Link} from "react-router-dom";
-import {useSelector} from "react-redux";
+import {useFetchGalleryQuery} from "../../redux/slices/gallery.api.slice";
 
 export const PhotoManagementScreen = () => {
-    const { photos: GalleryPhotos } = useSelector((state) => state.gallery);
+    const
+        [photoList, setPhotoList] = useState([]),
+        { data: photoGallery, isLoading: isLoadingGallery, error: galleryError } = useFetchGalleryQuery();
 
-    console.log("Gallery Photos For Table: ", GalleryPhotos);
+    useEffect(() => {
+        if(!isLoadingGallery) {
+            setPhotoList(photoGallery.data.fullGallery);
+            console.log("Photo List Set: ", photoGallery.data.fullGallery);
+        }
+    }, [isLoadingGallery]);
 
     return (
         <>
@@ -15,10 +22,9 @@ export const PhotoManagementScreen = () => {
             <Table variant={"responsive"} striped={true} hover={true} className={"mt-5"}>
                 <thead>
                 <tr>
+                    <th>Title</th>
                     <th>Order</th>
                     <th>Version</th>
-                    <th>Id</th>
-                    <th>Title</th>
                     <th>Download Filename</th>
                     <th>Uploaded By</th>
                     <th>Created On</th>
@@ -26,16 +32,15 @@ export const PhotoManagementScreen = () => {
                     <th>Actions</th>
                 </tr>
                 </thead>
-                <tbody className={GalleryPhotos?.length > 0 ? "" : "w-100 text-center"}>
+                <tbody className={photoList?.length > 0 ? "" : "w-100 text-center"}>
                 {
-                    GalleryPhotos?.data?.length > 0 && GalleryPhotos?.data?.map(photo => (
+                    photoList?.length > 0 && photoList?.map(photo => (
                         <tr>
+                            <td className={"text-start"}>{photo.title}</td>
                             <td>{photo.order || "Missing"}</td>
                             <td>{photo.__v}</td>
-                            <td>{photo._id}</td>
-                            <td>{photo.captions.title}</td>
                             <td>{photo.download.filename}</td>
-                            <td>{photo.user}</td>
+                            <td>{photo.user.fullName}</td>
                             <td>{photo.createdAt}</td>
                             <td>{photo.updatedAt}</td>
                             <td></td>
@@ -44,7 +49,7 @@ export const PhotoManagementScreen = () => {
                 }
                 </tbody>
                 {
-                    (!GalleryPhotos || GalleryPhotos?.data?.length === 0) && (
+                    (!photoList || photoList?.length === 0) && (
                         <h4 className={"text-center"}>No Data Yet!</h4>
                     )
                 }

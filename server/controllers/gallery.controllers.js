@@ -6,12 +6,54 @@ import mongoose from "mongoose";
 
 // @access Public
 export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
-    const galleryPhotos = await PhotoModel.find({}, null, null);
+    let gallery = {
+        fullGallery: [],
+        photoCount: 0,
+        fetchTS: convertTimestamp(new Date())
+    };
 
-    if(galleryPhotos) {
-        return res.status(200).json({
-            data: galleryPhotos
+    const
+        photoCount = await PhotoModel.countDocuments(),
+        photoList = await PhotoModel
+            .find({}, "-srcSet -cloudinary._id -download._id -captions._id", null)
+            .populate('user', "firstName lastName"),
+        processList = [...photoList];
+
+    if(photoList) {
+        gallery.photoCount = photoCount;
+        gallery.fullGallery = processList.map((photo, index) => {
+            let processedPhoto = {
+                ...photo._doc
+            };
+
+            // Set an Order
+            processedPhoto.order = index || 0;
+
+            // Move Captions Up a Level For Front-End Consumption
+            processedPhoto.title = processedPhoto.captions.title;
+            processedPhoto.description = processedPhoto.captions.description;
+            delete processedPhoto.captions;
+
+            // Transform User
+            processedPhoto.user = {
+                fullName: `${processedPhoto.user.firstName} ${processedPhoto.user.lastName}`,
+                _id: processedPhoto.user._id
+            };
+            delete processedPhoto.user.firstName;
+            delete processedPhoto.user.lastName;
+
+            // Process Dates To Specific Format
+            processedPhoto.createdAt = convertTimestamp(photo.createdAt);
+            processedPhoto.updatedAt = convertTimestamp(photo.updatedAt);
+
+            return processedPhoto;
         });
+
+        return res
+            .status(200)
+            .json({
+                data: gallery
+            });
     } else {
         res.status(404);
         throw new Error('Gallery Photos Not Found');
@@ -128,8 +170,19 @@ const _configureFolderPath = (tags) => {
     } else if (setForGardening) {
         folderPath = "tog/gardening";
     } else if (setForTravel) {
-        folderPath = "travel";
+        folderPath = "tog/travel";
     }
 
     return folderPath;
+}
+
+function convertTimestamp(timestamp) {
+    const
+        date = new Date(timestamp),
+        months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        formattedDate = `${months[date.getMonth()]} ${date.getDate().toString().padStart(2, '0')}, ${date.getFullYear()}`,
+        hours = date.getHours().toString().padStart(2, '0'),
+        minutes = date.getMinutes().toString().padStart(2, '0');
+
+    return `${formattedDate} @ ${hours}:${minutes}`;
 }

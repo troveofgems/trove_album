@@ -5,21 +5,22 @@ import { default as GalleryRoutes } from "./v1/gallery.routes.js";
 import { default as OnRenderRoutes } from "./v1/render.routes.js";
 
 import {swaggerDocs} from "../config/swagger/swagger.config.js";
+import {errorHandler, notFound} from "../middleware/error.middleware.js";
 
 export const mountMainRouter = (app) => {
     const
-        apiVersion = process.env.API_VERSION,
+        apiVersionRoute = `${process.env.API_VERSION}/api`,
         backend_apiRoutes = [
             {
-                route: `/${apiVersion}/auth`,
+                route: `/${apiVersionRoute}/auth`,
                 routeLoader: AuthRoutes
             },
             {
-                route: `/${apiVersion}/gallery`,
+                route: `/${apiVersionRoute}/gallery`,
                 routeLoader: GalleryRoutes
             },
             {
-                route: `/${apiVersion}/onRender`,
+                route: `/${apiVersionRoute}/onRender`,
                 routeLoader: OnRenderRoutes
             }
     ];
@@ -31,7 +32,16 @@ export const mountMainRouter = (app) => {
         app.use(`${apiRoute.route}`, apiRoute.routeLoader);
     });
 
-    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, { explorer: false, customCss: 'svg { height: 0; width: 0; }' }));
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, { explorer: false }));
+
+    return app;
+}
+
+export const mountErrorRoutes = (app) => {
+    if(process.env.NODE_ENV === "development") console.log("=============ERR APP ROUTES=================");
+
+    app.use(notFound);
+    app.use(errorHandler);
 
     return app;
 }

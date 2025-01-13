@@ -74,7 +74,7 @@ export const AddPhoto = () => {
     return (
         <FormContainer>
             <h1>Add A Photo</h1>
-            <Form onSubmit={handlePushPhotoToServer}>
+            <Form onSubmit={handlePushPhotoToServer} className={"mb-5"}>
                 <Row>
                     <Col xs={12} md={6}>
                         <Form.Group controlid={"imageUpload"}>
@@ -151,7 +151,7 @@ export const AddPhoto = () => {
                         </Form.Group>
                     </Col>
                 </Row>
-                <Button variant={"primary"} className={"mt-2"} type={"submit"}>
+                <Button variant={"primary"} className={"mt-2 mb-5"} type={"submit"}>
                     Process Photo
                 </Button>
             </Form>
