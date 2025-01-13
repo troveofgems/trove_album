@@ -3,24 +3,27 @@ import { Photo } from "../classes/gallery.classes.js";
 import { asyncHandler } from "../middleware/asyncHandler.middleware.js";
 import PhotoModel from "../db/models/photo.model.js";
 import mongoose from "mongoose";
+import photoModel from "../db/models/photo.model.js";
 
 // @access Public
 export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
-    let gallery = {
-        fullGallery: [],
-        photoCount: 0,
-        fetchTS: convertTimestamp(new Date())
-    };
+    let
+        gallery = {
+            fullGallery: [],
+            photoCount: 0,
+            fetchTS: convertTimestamp(new Date())
+        };
 
-    const
-        photoCount = await PhotoModel.countDocuments(),
-        photoList = await PhotoModel
-            .find({}, "-srcSet -cloudinary._id -download._id -captions._id", null)
-            .populate('user', "firstName lastName"),
-        processList = [...photoList];
+    let dataCached = await req.redisClient.get(`${req.originalUrl}`);
 
-    if(photoList) {
-        gallery.photoCount = photoCount;
+    if(dataCached === null) {
+        const
+            preprocessedPhotoList = await PhotoModel
+                .find({}, "-srcSet -cloudinary._id -download._id -captions._id", null)
+                .populate('user', "firstName lastName"),
+            processList = [...preprocessedPhotoList];
+
+        gallery.photoCount = await PhotoModel.countDocuments();
         gallery.fullGallery = processList.map((photo, index) => {
             let processedPhoto = {
                 ...photo._doc
@@ -49,14 +52,22 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
             return processedPhoto;
         });
 
+        // Set Cache
+        await req.redisClient.setEx(req.originalUrl, 120, JSON.stringify(gallery));
+
         return res
             .status(200)
             .json({
-                data: gallery
+                data: gallery,
+                fromCache: false
             });
     } else {
-        res.status(404);
-        throw new Error('Gallery Photos Not Found');
+        return res
+            .status(200)
+            .json({
+                data: JSON.parse(dataCached),
+                fromCache: true
+            });
     }
 });
 

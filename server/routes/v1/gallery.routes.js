@@ -1,6 +1,7 @@
 import express from 'express';
 import { protectRoute, enforceAdminPrivilege } from "../../middleware/jwt.middleware.js";
 import {addPhoto, deletePhoto, fetchGalleryPhotos, updatePhoto} from "../../controllers/gallery.controllers.js";
+import {cacheMiddleware} from "../../middleware/cache.middleware.js";
 
 const galleryRouter = express.Router();
 
@@ -22,7 +23,7 @@ galleryRouter
      *       '500':
      *         description: Internal server error
      */
-    .get(fetchGalleryPhotos)
+    .get(cacheMiddleware, fetchGalleryPhotos)
     /**
      * @swagger
      * /v1/gallery:

@@ -17,18 +17,17 @@ export const PhotoManagementScreen = () => {
 
     return (
         <>
-            <h1>Photo Management</h1>
             <Link className={"btn btn-primary mt-5"} to={"/admin/photo-management/addPhoto"}>Add Photo To Gallery</Link>
             <Table variant={"responsive"} striped={true} hover={true} className={"mt-5"}>
                 <thead>
                 <tr>
-                    <th>Title</th>
                     <th>Order</th>
-                    <th>Version</th>
+                    <th className={"text-start"}>Title</th>
                     <th>Download Filename</th>
                     <th>Uploaded By</th>
                     <th>Created On</th>
                     <th>Last Updated</th>
+                    <th>Version</th>
                     <th>Actions</th>
                 </tr>
                 </thead>
@@ -36,13 +35,13 @@ export const PhotoManagementScreen = () => {
                 {
                     photoList?.length > 0 && photoList?.map(photo => (
                         <tr>
-                            <td className={"text-start"}>{photo.title}</td>
                             <td>{photo.order || "Missing"}</td>
-                            <td>{photo.__v}</td>
+                            <td className={"text-start"}>{photo.title}</td>
                             <td>{photo.download.filename}</td>
                             <td>{photo.user.fullName}</td>
                             <td>{photo.createdAt}</td>
                             <td>{photo.updatedAt}</td>
+                            <td>{photo.__v}</td>
                             <td></td>
                         </tr>
                     ))
