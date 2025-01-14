@@ -6,4 +6,4 @@ export const SEO_SITE_URL = "https://www.photo-album.thetroveofgems.tech";
 export const SEO_HOME_URL = "https://www.thetroveofgems.tech";
 
 export const SEO_OG_TYPE = "website";
-export const SEO_OG_IMG_REF = "https://asset.cloudinary.com/ds5xwt3v1/c1d92b136c429ef7179ada0d8241a39d";
+export const SEO_OG_IMG_REF = "https://res.cloudinary.com/ds5xwt3v1/image/upload/c_thumb,w_200,g_face/v1736809966/lou_painting_ulj3dq.jpg";
