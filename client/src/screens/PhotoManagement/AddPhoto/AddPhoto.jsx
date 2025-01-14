@@ -4,7 +4,7 @@ import {FormContainer} from "../../../components/shared/FormContainer/FormContai
 import {TagField} from "../../../components/shared/TagField/TagField";
 import useTags from "../../../hooks/useTag.hook";
 import {useAddPhotoMutation} from "../../../redux/slices/gallery.api.slice";
-import {toast} from "react-toastify";
+//import {toast} from "react-toastify";
 
 export const AddPhoto = () => {
     const MAX_TAGS = 5;
@@ -64,10 +64,10 @@ export const AddPhoto = () => {
         try {
             const res = await addPhoto(photo).unwrap();
             console.log("Res was: ", res);
-            toast.success(res.message);
+            //toast.success(res.message);
         } catch(err) {
             if(process.env.NODE_ENV === "development") console.error(err);
-            return toast.error(err?.data?.message || err.error || err.status);
+            return //toast.error(err?.data?.message || err.error || err.status);
         }
     };
 
