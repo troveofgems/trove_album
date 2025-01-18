@@ -3,5 +3,5 @@ User-agent: GPTbot
 Disallow: /
 
 # https://www.robotstxt.org/robotstxt.html
-User-agent: Google
-Disallow:
+User-agent: *
+Allow: /

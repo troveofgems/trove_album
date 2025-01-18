@@ -57,23 +57,13 @@ root.render(
       <HelmetProvider>
           <Helmet prioritizeSeoTags>
               { /* Standard metadata tags */}
-              <meta charSet="utf-8"/>
-              <title>{SEO_TITLE}</title>
-              <meta name='description' content={SEO_DESCRIPTION}/>
-              <meta name="keywords" content={SEO_KEYWORDS}/>
-              <meta name="author" content={SEO_SITE_AUTHOR}/>
               <meta name="viewport" content="width=device-width, initial-scale=1"/>
               <meta name="google" content="notranslate"/>
               <meta httpEquiv="X-UA-Compatible" content="IE=edge"/>
               { /* End standard metadata tags */}
 
               { /* Open Graphic metadata tags */}
-              <meta property="og:type" content={SEO_OG_TYPE}/>
-              <meta property="og:site_name" content={SEO_TITLE}/>
-              <meta property="og:title" content={SEO_TITLE}/>
-              <meta property="og:url" content={SEO_SITE_URL}/>
-              <meta property="og:image" content={SEO_OG_IMG_REF}/>
-              <meta property="og:description" content={SEO_DESCRIPTION}/>
+
               { /* End Open Graphic metadata tags */}
 
               { /* Apple */}
