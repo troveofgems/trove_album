@@ -72,7 +72,7 @@ root.render(
               { /* End Apple */}
 
               { /* Robots & Manifest & Other Links */}
-              <meta name="robots" content="index, nofollow"/>
+              <meta name="robots" content="index, follow"/>
               <link rel="manifest" href="/manifest.json"/>
               <link rel="canonical" href={SEO_SITE_URL}/>
               <link rel="icon" href="/favicon.ico"/>

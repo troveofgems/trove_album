@@ -112,6 +112,7 @@ export const addPhoto = asyncHandler(async (req, res, next) => {
                 description: photo.getCaptions().description,
             },
             download: {
+                url: photo.getDownload().url,
                 filename: photo.getDownload().filename
             },
             tags: photo.getTags(),
