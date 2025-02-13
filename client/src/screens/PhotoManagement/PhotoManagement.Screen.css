@@ -1,0 +1,10 @@
+.actionIcon {
+    cursor: pointer;
+}
+
+.maxItemListSelected {
+    &.selected {
+        color: white;
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+}

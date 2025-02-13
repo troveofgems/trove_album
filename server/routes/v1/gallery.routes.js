@@ -1,6 +1,6 @@
 import express from 'express';
 import { protectRoute, enforceAdminPrivilege } from "../../middleware/jwt.middleware.js";
-import {addPhoto, deletePhoto, fetchGalleryPhotos, updatePhoto} from "../../controllers/gallery.controllers.js";
+import {addPhoto, deletePhoto, fetchGalleryPhotos, fetchPhotoById, updatePhoto} from "../../controllers/gallery.controllers.js";
 import {cacheMiddleware} from "../../middleware/cache.middleware.js";
 
 const galleryRouter = express.Router();
@@ -17,9 +17,11 @@ galleryRouter
      *     description: Fetches all photos from the gallery
      *     responses:
      *       '200':
-     *         description: A successful response
+     *         description: Gallery Fetched
+     *       '400':
+     *         description: Unable To Fetch Gallery
      *       '404':
-     *         description: Photo Gallery Not Found
+     *         description: Resource Not Found
      *       '500':
      *         description: Internal server error
      */
@@ -30,15 +32,31 @@ galleryRouter
      *   post:
      *     tags:
      *      - Photo Gallery
-     *     summary: Fetch Gallery
-     *     description: Fetches All Gallery Photos
+     *     summary: Add Photo To Gallery
+     *     description: Adds a Photo To The Gallery of Photos
+     *     requestBody:
+     *       description: Photo Request Object To Insert Into The Gallery
+     *       content:
+     *         multipart/form-data:
+     *           schema:
+     *             $ref: '#/components/schemas/photo'
+     *           example:
+     *              src: base64str.aggzEf2qrvbs...
+     *              alt: Front Facing Photo of Gardens Taken Mid-Afternoon...
+     *              width: 800
+     *              height: 1000
+     *              srcSet: []
+     *              captions: ""
+     *              download: "front_facing_garden"
      *     responses:
      *       '200':
-     *         description: A successful response
+     *         description: Photo Created For Gallery
+     *       '400':
+     *         description: Unable To Add Photo
      *       '404':
-     *         description: Employee not found
+     *         description: Resource Not Found
      *       '500':
-     *         description: Internal server error
+     *         description: Internal Server Error
      */
     .post(protectRoute, enforceAdminPrivilege, addPhoto);
 
@@ -50,25 +68,8 @@ galleryRouter
      *   get:
      *     tags:
      *      - Photo Gallery
-     *     summary: Fetch Full Gallery
-     *     description: Fetches all photos from the gallery
-     *     responses:
-     *       '200':
-     *         description: A successful response
-     *       '404':
-     *         description: Photo Gallery Not Found
-     *       '500':
-     *         description: Internal server error
-     */
-    .get(cacheMiddleware, fetchGalleryPhotos)
-    /**
-     * @swagger
-     * /v1/api/gallery/photos/{id}:
-     *   put:
-     *     tags:
-     *      - Photo Gallery
-     *     summary: Update Photo
-     *     description: Updates A Photo
+     *     summary: Fetch Photo By id From Photo Gallery
+     *     description: Fetches A Single Photo By Its id From The Photo Gallery
      *     parameters:
      *       - in: path
      *         name: id
@@ -78,9 +79,37 @@ galleryRouter
      *         description: Photo ID
      *     responses:
      *       '200':
-     *         description: A successful response
+     *         description: Photo By Id Found
+     *       '400':
+     *         description: Unable To Locate Photo By Id
      *       '404':
-     *         description: Employee not found
+     *         description: Resource Not Found
+     *       '500':
+     *         description: Internal server error
+     */
+    .get(fetchPhotoById)
+    /**
+     * @swagger
+     * /v1/api/gallery/photos/{id}:
+     *   put:
+     *     tags:
+     *      - Photo Gallery
+     *     summary: Update Photo By id Within Photo Gallery
+     *     description: Updates A Single Photo By Its id From The Photo Gallery Using PUT Method
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         schema:
+     *           type: string
+     *         required: true
+     *         description: Photo ID
+     *     responses:
+     *       '200':
+     *         description: Photo Updated
+     *       '400':
+     *         description: Unable To Update Photo
+     *       '404':
+     *         description: Resource Not Found
      *       '500':
      *         description: Internal server error
      */
@@ -91,8 +120,8 @@ galleryRouter
      *   patch:
      *     tags:
      *      - Photo Gallery
-     *     summary: Update Photo
-     *     description: Updates A Photo
+     *     summary: Update Photo By id Within Photo Gallery
+     *     description: Updates A Single Photo By Its id From The Photo Gallery Using PATCH Method
      *     parameters:
      *       - in: path
      *         name: id
@@ -102,9 +131,11 @@ galleryRouter
      *         description: Photo ID
      *     responses:
      *       '200':
-     *         description: A successful response
+     *         description: Photo Updated
+     *       '400':
+     *         description: Unable To Update Photo
      *       '404':
-     *         description: Employee not found
+     *         description: Resource Not Found
      *       '500':
      *         description: Internal server error
      */
@@ -115,8 +146,8 @@ galleryRouter
      *   delete:
      *     tags:
      *      - Photo Gallery
-     *     summary: Delete Photo
-     *     description: Deletes a Photo
+     *     summary: Delete Photo By id Within Photo Gallery
+     *     description: Deletes a Photo By Its id From The Photo Gallery
      *     parameters:
      *       - in: path
      *         name: id
@@ -126,9 +157,11 @@ galleryRouter
      *         description: Photo ID
      *     responses:
      *       '200':
-     *         description: A successful response
+     *         description: Photo Deleted
+     *       '400':
+     *         description: Unable To Delete Photo
      *       '404':
-     *         description: Employee not found
+     *         description: Resource Not Found
      *       '500':
      *         description: Internal server error
      */

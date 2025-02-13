@@ -120,6 +120,7 @@ export class Photo {
     }
 }
 
+/*
 export class Album {
     constructor(id, name, description, photos, albumTag) {
         this.id = id;
@@ -128,4 +129,4 @@ export class Album {
         this.photos = photos;
         this.albumTag = albumTag;
     }
-}
+}*/

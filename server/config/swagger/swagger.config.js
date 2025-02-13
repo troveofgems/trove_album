@@ -33,6 +33,29 @@ const
                 }
             ],
             components: {
+                schemas: {
+                    user:
+                        {
+                            properties:
+                                {
+                                    email: { type: "string" },
+                                    password: { type: "string" }
+                                },
+                        },
+                    photo:
+                        {
+                            properties:
+                                {
+                                    src: { type: "string" },
+                                    alt: { type: "string" },
+                                    width: { type: "number" },
+                                    height: { type: "number" },
+                                    srcSet: { type: "array" },
+                                    captions: { type: "string" },
+                                    download: { type: "string" }
+                                },
+                        }
+                },
                 securitySchemes: {
                     cookieAuth: {
                         type: "apiKey",

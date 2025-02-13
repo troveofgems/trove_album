@@ -4,7 +4,9 @@ import {FormContainer} from "../../../components/shared/FormContainer/FormContai
 import {TagField} from "../../../components/shared/TagField/TagField";
 import useTags from "../../../hooks/useTag.hook";
 import {useAddPhotoMutation} from "../../../redux/slices/gallery.api.slice";
-//import {toast} from "react-toastify";
+import {toast} from "react-toastify";
+import {useNavigate} from "react-router-dom";
+
 
 export const AddPhoto = () => {
     const MAX_TAGS = 5;
@@ -21,6 +23,8 @@ export const AddPhoto = () => {
     const [imgData, setImgData] = useState(null);
     const [dimensions, setDimensions] = useState({ height: 0, width: 0, fileSizeInKB: 0, fileSizeInMB: 0 });
     const imgRef = useRef(null);
+
+    const navigate = useNavigate();
 
     const onUploadImage = e => {
         if (e.target.files[0]) {
@@ -64,10 +68,11 @@ export const AddPhoto = () => {
         try {
             const res = await addPhoto(photo).unwrap();
             console.log("Res was: ", res);
-            //toast.success(res.message);
+            toast.success(res.message);
+            return navigate("/admin/photo-management");
         } catch(err) {
             if(process.env.NODE_ENV === "development") console.error(err);
-            return //toast.error(err?.data?.message || err.error || err.status);
+            return toast.error(err?.data?.message || err.error || err.status);
         }
     };
 

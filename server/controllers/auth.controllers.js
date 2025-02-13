@@ -8,6 +8,7 @@ import {
 
 // @access Public
 export const handleLogin = async (req, res, next) => {
+    console.log("Login: ", req.params, req.body);
     const { email, password } = req.body;
     if (!email || !password) {
         res.status(400);
@@ -32,7 +33,7 @@ export const handleLogin = async (req, res, next) => {
                 }
             });
     } else {
-        res.status(401);
+        res.status(400);
         next(new Error(INVALID_CREDENTIALS));
     }
 };

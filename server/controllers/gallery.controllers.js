@@ -3,7 +3,6 @@ import { Photo } from "../classes/gallery.classes.js";
 import { asyncHandler } from "../middleware/asyncHandler.middleware.js";
 import PhotoModel from "../db/models/photo.model.js";
 import mongoose from "mongoose";
-import photoModel from "../db/models/photo.model.js";
 
 // @access Public
 export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
@@ -30,7 +29,7 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
             };
 
             // Set an Order
-            processedPhoto.order = index || 0;
+            processedPhoto.order = (index || 0);
 
             // Move Captions Up a Level For Front-End Consumption
             processedPhoto.title = processedPhoto.captions.title;
@@ -73,17 +72,13 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
 
 // @access Public
 export const fetchPhotoById = asyncHandler(async (req, res, next) => {
-    const galleryPhoto = await PhotoModel.find({
-        _id: req.body._id
-    }, null, null);
-
-    if(galleryPhoto) {
+    try {
+        const galleryPhoto = await PhotoModel.findById(req.params.id, "", null);
         return res.status(200).json({
             data: galleryPhoto
         });
-    } else {
-        res.status(404);
-        throw new Error('Gallery Photo Not Found');
+    } catch(err) {
+        return next(err);
     }
 });
 

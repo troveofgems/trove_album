@@ -10,7 +10,7 @@ const onRenderRouter = express.Router();
  *     tags:
  *      - Application Health Check
  *     summary: Check Application Health
- *     description: Health Check Always returns 200 response
+ *     description: Health Check Always returns 200 Response Unless Application Is Down; Used by Render.com For Periodic Health Checks
  *     responses:
  *       '200':
  *         description: A successful response

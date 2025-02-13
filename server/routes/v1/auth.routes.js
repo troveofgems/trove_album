@@ -12,24 +12,28 @@ const authRoutes = express.Router();
  *      - Authentication
  *     summary: Log Into Application
  *     description: Logs User Into Application
- *     parameters:
- *       - in: body
- *         name: email
- *         schema:
- *           type: string
- *         required: true
- *         description: Login Account Email
- *       - in: body
- *         name: password
- *         schema:
- *           type: string
- *         required: true
- *         description: Login Account Password
+ *     requestBody:
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 description: Login Email Address
+ *                 type: string
+ *               password:
+ *                 description: Login Password
+ *                 type: string
+ *           required:
+ *             - email
+ *             - password
  *     responses:
  *       '200':
- *         description: A successful response
+ *         description: Login Successful & Token Generated
+ *       '400':
+ *         description: Invalid User Credentials
  *       '404':
- *         description: User not found
+ *         description: Invalid User Credentials
  *       '500':
  *         description: Internal server error
  */
@@ -45,18 +49,11 @@ authRoutes
  *      - Authentication
  *     summary: Log Out From Application
  *     description: Logs User Out From Application
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: Employee ID
  *     responses:
  *       '200':
- *         description: A successful response
- *       '404':
- *         description: Employee not found
+ *         description: Logout Successful
+ *       '400':
+ *         description: Unable To Log Out From Account
  *       '500':
  *         description: Internal server error
  */
