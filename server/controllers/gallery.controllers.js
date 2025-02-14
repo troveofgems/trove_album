@@ -1,4 +1,4 @@
-import { uploadToCloudinary } from "../services/cloudinary.service.js";
+import { uploadToCloudinary, removeFromCloudinary } from "../services/cloudinary.service.js";
 import { Photo } from "../classes/gallery.classes.js";
 import { asyncHandler } from "../middleware/asyncHandler.middleware.js";
 import PhotoModel from "../db/models/photo.model.js";
@@ -149,13 +149,24 @@ export const updatePhoto = asyncHandler(async (req, res, next) => {
 
 // @access Private
 export const deletePhoto = asyncHandler(async (req, res, next) => {
-    if(false) {
+    console.log("Delete Photo...", req.params);
+    const photo = await PhotoModel.findById(req.params.id, "cloudinary.publicId", null);
+    const photoRemoved = await removeFromCloudinary(photo.cloudinary.publicId);
+
+    console.log("Photo Removed? ", photoRemoved);
+
+    if(photoRemoved.result === "ok") {
         return res.status(200).json({
-            data: null
+            data: null,
+            message: "Photo Removed From Gallery"
         });
     } else {
+        let defaultErrorMessage = 'Unable to Delete Gallery Photo';
         res.status(400);
-        throw new Error('Unable to Delete Gallery Photo');
+        if(photoRemoved.result === "not found") {
+            defaultErrorMessage = "Resource Not Found";
+        }
+        return next(new Error(defaultErrorMessage));
     }
 });
 

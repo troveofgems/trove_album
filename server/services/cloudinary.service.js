@@ -16,7 +16,7 @@ export const uploadToCloudinary = async (path, folder) => {
     }
 }
 
-export const removeFromCloudinary = async() => {
+export const removeFromCloudinary = async(publicId) => {
     cloudinary.config({
         cloud_name: process.env.CLOUDINARY_USER,
         api_key: process.env.CLOUDINARY_API_KEY,
@@ -24,8 +24,7 @@ export const removeFromCloudinary = async() => {
     });
 
     try {
-       /* const uploadData = await cloudinary.uploader.upload(path, { folder: folder });
-        return { url: uploadData.secure_url, publicId: uploadData.public_id };*/
+        return await cloudinary.uploader.destroy(publicId);
     } catch(err) {
         console.error(err);
         throw err;

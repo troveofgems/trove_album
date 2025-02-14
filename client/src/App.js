@@ -4,7 +4,7 @@ import './App.css';
 
 import {NavBar} from "./components/NavBar/NavBar";
 import {Outlet} from "react-router-dom";
-//import {ToastContainer} from "react-toastify";
+import {ToastContainer} from "react-toastify";
 
 function App() {
     const [currentView, setCurrentView] = useState("Pets");
@@ -19,7 +19,7 @@ function App() {
                 <NavBar onViewChange={changeViewTo}/>
             </header>
             <main>
-                {/*<ToastContainer/>*/}
+                <ToastContainer/>
                 <Outlet context={{currentView}}/>
             </main>
         </div>

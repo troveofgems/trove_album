@@ -1,7 +1,7 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {Table} from "react-bootstrap";
 import {Link, useNavigate} from "react-router-dom";
-import {useFetchGalleryQuery} from "../../redux/slices/gallery.api.slice";
+import {useFetchGalleryQuery, useDeletePhotoMutation} from "../../redux/slices/gallery.api.slice";
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -9,6 +9,7 @@ import Pagination from "../../components/shared/Pagination/Pagination";
 
 import "./PhotoManagement.Screen.css";
 import classnames from "classnames";
+import {toast} from "react-toastify";
 
 export const PhotoManagementScreen = () => {
     const
@@ -16,7 +17,8 @@ export const PhotoManagementScreen = () => {
         navigate = useNavigate(),
         [currentPage, setCurrentPage] = useState(1),
         [pageSizeOverride, setPageSizeOverride] = useState(DefaultPageSize),
-        { data: photoGallery, isLoading: isLoadingGallery, error: galleryError } = useFetchGalleryQuery();
+        { data: photoGallery, isLoading: isLoadingGallery, error: galleryError } = useFetchGalleryQuery(),
+        [deletePhoto, isLoading] = useDeletePhotoMutation();
 
     const currentTableData = useMemo(() => {
         if(!isLoadingGallery && !!photoGallery) {
@@ -27,8 +29,21 @@ export const PhotoManagementScreen = () => {
         return [];
     }, [isLoadingGallery, currentPage, pageSizeOverride]);
 
-    const handlePhotoDelete = (photoId, photoDownloadName) => {
-        window.alert(`Delete Photo! ${photoId}, ${photoDownloadName}`);
+    const handlePhotoDelete = async (e, photoId, photoDownloadName) => {
+        e.preventDefault();
+        try {
+            const res = await deletePhoto({ photoId }).unwrap();
+            if(res.status === 200) {
+                return toast.success(res.message);
+            }
+        } catch(err) {
+            if(process.env.NODE_ENV === "development") console.error(err);
+            if((err?.status >= 400 && err?.status < 500) && !!err?.data) {
+                return toast.error(`${err.status}: API Error - ${err.data.message}`);
+            } else {
+                return toast.error(`${err.originalStatus}: Network Error - ${err.status}`);
+            }
+        }
     };
 
     const handlePhotoUpdate = (photoId) => {
@@ -37,6 +52,7 @@ export const PhotoManagementScreen = () => {
     };
 
     const changeDefaultPageSize = (val) => {
+        setCurrentPage(1);
         return setPageSizeOverride(val);
     }
 
@@ -59,8 +75,7 @@ export const PhotoManagementScreen = () => {
                     <th>Actions</th>
                 </tr>
                 </thead>
-                {/*className={photoList?.length > 0 ? "" : "w-100 text-center"}*/}
-                <tbody>
+                <tbody className={currentTableData?.length > 0 ? "" : "w-100 text-center"}>
                 {
                     currentTableData?.map(photo => (
                         <tr key={photo._id}>
@@ -85,7 +100,7 @@ export const PhotoManagementScreen = () => {
                                         <DeleteIcon
                                             key={photo._id}
                                             color={"error"}
-                                            onClick={() => handlePhotoDelete(photo._id, photo.download.filename)}
+                                            onClick={(e) => handlePhotoDelete(e, photo._id, photo.download.filename)}
                                             className={"actionIcon"}
                                         />
                                     </div>

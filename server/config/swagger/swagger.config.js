@@ -38,8 +38,10 @@ const
                         {
                             properties:
                                 {
+                                    _id: { type: "string" },
+                                    name: { type: "string" },
                                     email: { type: "string" },
-                                    password: { type: "string" }
+                                    isAdmin: { type: "boolean" },
                                 },
                         },
                     photo:
@@ -75,25 +77,3 @@ export const swaggerDocs = swaggerJsDoc({
     definition: {},
     apis: swaggerOptions.apis
 });
-
-
-
-/*
-
-
-,
-        definition: {},
-
-components: {
-    securitySchemes: {
-        basicAuth: {
-            type: "http"
-        }
-    },
-    scheme: "basic",
-        security: {
-        basicAuth: []
-    }
-},
-
-*/
