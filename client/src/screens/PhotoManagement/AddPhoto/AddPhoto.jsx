@@ -6,36 +6,49 @@ import useTags from "../../../hooks/useTag.hook";
 import {useAddPhotoMutation} from "../../../redux/slices/gallery.api.slice";
 import {toast} from "react-toastify";
 import {useNavigate} from "react-router-dom";
+import EXIF from "exif-js";
+import ExifReader from 'exifreader';
 
 
 export const AddPhoto = () => {
-    const MAX_TAGS = 5;
+    const MAX_TAGS = parseInt(process.env.MAX_TAGS_FOR_PHOTO);
 
-    const [addPhoto, isLoading] = useAddPhotoMutation();
+    /** Page States */
+    const [photo, setPhoto] = useState({});
+    const [picture, setPicture] = useState(null);
+    const [imgData, setImgData] = useState(null);
 
     const [photoTitle, setPhotoTitle] = useState("");
     const [customDownloadName, setCustomDownloadName] = useState("");
     const [photoDescription, setPhotoDescription] = useState("");
     const [photoAltText, setPhotoAltText] = useState("");
-    const { tags, handleAddTag, handleRemoveTag } = useTags(MAX_TAGS);
 
-    const [picture, setPicture] = useState(null);
-    const [imgData, setImgData] = useState(null);
     const [dimensions, setDimensions] = useState({ height: 0, width: 0, fileSizeInKB: 0, fileSizeInMB: 0 });
+    const [imgEXIFData, setImgTakenOn] = useState({ dateTimeOriginal: null, fileType: null, gpsLatitude: null, gpsLongitude: null });
     const imgRef = useRef(null);
 
+    /** Page Actions */
     const navigate = useNavigate();
+    const { tags, handleAddTag, handleRemoveTag } = useTags(MAX_TAGS);
+    const [addPhoto, isLoading] = useAddPhotoMutation();
 
     const onUploadImage = e => {
+        e.preventDefault();
         if (e.target.files[0]) {
             setPicture(e.target.files[0]);
             const reader = new FileReader();
-            reader.addEventListener("load", () => {
+            reader.addEventListener("load", async () => {
                 setImgData(reader.result);
+                const tags = await ExifReader.load(e.target.files[0]);
+                parseEXIFTags(tags);
             });
             reader.readAsDataURL(e.target.files[0]);
         }
     };
+
+    const parseEXIFTags = (tags) => {
+       console.log("Try to get EXIF Data...", tags);
+    }
 
     useEffect(() => {
         if(imgRef.current) {
@@ -97,6 +110,10 @@ export const AddPhoto = () => {
                                 <div className={"mt-3 mb-3"}>
                                     <Image ref={imgRef} src={`${imgData}`} thumbnail />
                                     <Row className={"text-start"}>
+                                        <Col>
+                                            <p>Device</p>
+                                            <p>Model</p>
+                                        </Col>
                                         <Col>
                                             <p className={"pt-2 pb-0 mb-0"}>Natural Height: {dimensions.height}px</p>
                                             <p className={"pb-0 mb-0"}>Natural Width: {dimensions.width}px</p>

@@ -9,11 +9,11 @@ const photoSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    width: {
+    width: { // To Deprecate in Favor of Dimensions Nest
       type: Number,
       required: true
     },
-    height: {
+    height: { // To Deprecate in Favor of Dimensions Nest
       type: Number,
       required: true
     },
@@ -28,6 +28,13 @@ const photoSchema = new mongoose.Schema({
             }
         ],
         required: false,
+    },
+    dimensions: {
+        type: {
+            width: { type: Number, required: true },
+            height: { type: Number, required: true },
+        },
+        required: false
     },
     captions: {
         type: {
@@ -47,6 +54,13 @@ const photoSchema = new mongoose.Schema({
         type: [
             { type: String, required: true },
         ]
+    },
+    gps: {
+        type: {
+            latitude: { type: Number, required: true },
+            longitude: { type: Number, required: true },
+        },
+        required: false
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,

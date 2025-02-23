@@ -2,6 +2,8 @@ import express from 'express';
 import { protectRoute, enforceAdminPrivilege } from "../../middleware/jwt.middleware.js";
 import {addPhoto, deletePhoto, fetchGalleryPhotos, fetchPhotoById, updatePhoto} from "../../controllers/gallery.controllers.js";
 import {cacheMiddleware} from "../../middleware/cache.middleware.js";
+import {apiBenchmarkMiddleware} from "../../middleware/api.benchmark.middleware.js";
+
 
 const galleryRouter = express.Router();
 
@@ -160,11 +162,13 @@ galleryRouter
      *         description: Photo Deleted
      *       '400':
      *         description: Unable To Delete Photo
+     *       '403':
+     *         description: Forbidden - Access Not Granted
      *       '404':
      *         description: Resource Not Found
      *       '500':
      *         description: Internal server error
      */
-    .delete(protectRoute, enforceAdminPrivilege, deletePhoto)
+    .delete(protectRoute, enforceAdminPrivilege, apiBenchmarkMiddleware, deletePhoto)
 
 export default galleryRouter;

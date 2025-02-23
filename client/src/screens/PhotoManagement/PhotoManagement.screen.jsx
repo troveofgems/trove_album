@@ -10,6 +10,7 @@ import Pagination from "../../components/shared/Pagination/Pagination";
 import "./PhotoManagement.Screen.css";
 import classnames from "classnames";
 import {toast} from "react-toastify";
+import {Temporal} from "@js-temporal/polyfill";
 
 export const PhotoManagementScreen = () => {
     const
@@ -29,11 +30,13 @@ export const PhotoManagementScreen = () => {
         return [];
     }, [isLoadingGallery, currentPage, pageSizeOverride]);
 
-    const handlePhotoDelete = async (e, photoId, photoDownloadName) => {
+    const handlePhotoDelete = async (e, photoId, cloudinaryPublicId) => {
+        const frontendAPIRequestTS = Temporal.Now.instant();
         e.preventDefault();
         try {
-            const res = await deletePhoto({ photoId }).unwrap();
-            if(res.status === 200) {
+            const res = await deletePhoto({ photoId, cloudinaryPublicId: cloudinaryPublicId, frontendAPIRequestTS }).unwrap();
+            const allAPIsCompletedSuccessfully = res?.data?.every(item => item.statusCode === 200);
+            if(res.data.statusCode === 207 && allAPIsCompletedSuccessfully) {
                 return toast.success(res.message);
             }
         } catch(err) {
@@ -41,7 +44,7 @@ export const PhotoManagementScreen = () => {
             if((err?.status >= 400 && err?.status < 500) && !!err?.data) {
                 return toast.error(`${err.status}: API Error - ${err.data.message}`);
             } else {
-                return toast.error(`${err.originalStatus}: Network Error - ${err.status}`);
+                return toast.error(`${err?.originalStatus || 500}: Network Error - ${err?.data.message || err?.status}`);
             }
         }
     };
@@ -56,8 +59,13 @@ export const PhotoManagementScreen = () => {
         return setPageSizeOverride(val);
     }
 
+    const testTemporalPolyfill = Temporal.Now.instant();
+
     return (
         <>
+            <>
+                <p>Using Temporal? {`${testTemporalPolyfill}`}</p>
+            </>
             <div className={"d-flex justify-content-end mb-3"}>
                 <Link className={"btn btn-primary"} to={"/admin/photo-management/addPhoto"}>Add Photo To Gallery</Link>
             </div>
@@ -100,7 +108,7 @@ export const PhotoManagementScreen = () => {
                                         <DeleteIcon
                                             key={photo._id}
                                             color={"error"}
-                                            onClick={(e) => handlePhotoDelete(e, photo._id, photo.download.filename)}
+                                            onClick={(e) => handlePhotoDelete(e, photo._id, photo.cloudinary.publicId)}
                                             className={"actionIcon"}
                                         />
                                     </div>

@@ -37,9 +37,13 @@ export const galleryApiSlice = apiSlice.injectEndpoints({
             })
         }),
         deletePhoto: builder.mutation({
-            query: ({ photoId }) => ({
+            query: ({ photoId, cloudinaryPublicId, frontendAPIRequestTS }) => ({
                 url: `${GALLERY_URL}/${photoId}`,
-                method: "DELETE"
+                method: "DELETE",
+                body: {
+                    cloudinaryPublicId: cloudinaryPublicId,
+                    frontendAPIRequestTS: frontendAPIRequestTS
+                }
             })
         }),
     })

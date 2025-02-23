@@ -2,7 +2,13 @@ import { uploadToCloudinary, removeFromCloudinary } from "../services/cloudinary
 import { Photo } from "../classes/gallery.classes.js";
 import { asyncHandler } from "../middleware/asyncHandler.middleware.js";
 import PhotoModel from "../db/models/photo.model.js";
+import sanitize from "mongo-sanitize";
 import mongoose from "mongoose";
+import {
+    captureTimestamp,
+    processBenchmarks, trackAPIReceiveTime,
+} from "../util/api.benchmarker.utils.js";
+import {processResultsForAllPromises, waitForPromises} from "../util/promise.resolver.utils.js";
 
 // @access Public
 export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
@@ -87,6 +93,7 @@ export const addPhoto = asyncHandler(async (req, res, next) => {
     const galleryPhotoCount = await PhotoModel.countDocuments();
 
     let photo = new Photo(req.body);
+    console.log("Uploading Photo: ", req.body);
     let uploadFolderPath = _configureFolderPath(photo.getTags());
     photo.setOrder(galleryPhotoCount + 1);
     photo.setUser(new mongoose.Types.ObjectId(req.user._id));
@@ -113,7 +120,7 @@ export const addPhoto = asyncHandler(async (req, res, next) => {
             tags: photo.getTags(),
             user: photo.getUser(),
             cloudinary: photo.getCloudinary()
-        });
+        }, null);
 
         return res
             .status(200)
@@ -149,25 +156,28 @@ export const updatePhoto = asyncHandler(async (req, res, next) => {
 
 // @access Private
 export const deletePhoto = asyncHandler(async (req, res, next) => {
-    console.log("Delete Photo...", req.params);
-    const photo = await PhotoModel.findById(req.params.id, "cloudinary.publicId", null);
-    const photoRemoved = await removeFromCloudinary(photo.cloudinary.publicId);
+    trackAPIReceiveTime(req);
 
-    console.log("Photo Removed? ", photoRemoved);
+    const // Attempt Removal of Resources From Cloudinary Storage and MongoDB
+        resolvedPromises = await waitForPromises(
+            [
+                removeFromCloudinary(sanitize(req.body.cloudinaryPublicId)),
+                PhotoModel.findByIdAndDelete(sanitize(req.params.id), null)
+            ], ["Cloudinary", "MongoDB"],
+            next
+        ),
+        processedPromises = processResultsForAllPromises(resolvedPromises, "Unable to Remove Photo From");
 
-    if(photoRemoved.result === "ok") {
-        return res.status(200).json({
-            data: null,
-            message: "Photo Removed From Gallery"
+    console.log("Processed Promises? ", processedPromises);
+    let message = "";
+
+    return res
+        .status(processedPromises.statusCode)
+        .json({
+            data: processedPromises,
+            message,
+            benchmarks: processBenchmarks(req)
         });
-    } else {
-        let defaultErrorMessage = 'Unable to Delete Gallery Photo';
-        res.status(400);
-        if(photoRemoved.result === "not found") {
-            defaultErrorMessage = "Resource Not Found";
-        }
-        return next(new Error(defaultErrorMessage));
-    }
 });
 
 const _configureFolderPath = (tags) => {
@@ -189,6 +199,8 @@ const _configureFolderPath = (tags) => {
         folderPath = "tog/gardening";
     } else if (setForTravel) {
         folderPath = "tog/travel";
+    } else {
+        folderPath = "tog/uncategorized"
     }
 
     return folderPath;

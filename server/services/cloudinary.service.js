@@ -12,7 +12,7 @@ export const uploadToCloudinary = async (path, folder) => {
         return { url: uploadData.secure_url, publicId: uploadData.public_id };
     } catch(err) {
         console.error(err);
-        throw err;
+        //throw err;
     }
 }
 
@@ -27,6 +27,6 @@ export const removeFromCloudinary = async(publicId) => {
         return await cloudinary.uploader.destroy(publicId);
     } catch(err) {
         console.error(err);
-        throw err;
+        //throw err;
     }
 }
