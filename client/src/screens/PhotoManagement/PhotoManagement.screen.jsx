@@ -42,7 +42,7 @@ export const PhotoManagementScreen = () => {
         } catch(err) {
             if(process.env.NODE_ENV === "development") console.error(err);
             if((err?.status >= 400 && err?.status < 500) && !!err?.data) {
-                return toast.error(`${err.status}: API Error - ${err.data.message}`);
+                return toast.error(`${err?.status}: API Error - ${err?.data?.message}`);
             } else {
                 return toast.error(`${err?.originalStatus || 500}: Network Error - ${err?.data.message || err?.status}`);
             }

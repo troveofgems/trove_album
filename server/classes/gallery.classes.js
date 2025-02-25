@@ -1,16 +1,45 @@
+const NOT_SET = "not set";
 export class Photo {
-    constructor({src, alt, width, height, srcSet = null, captions, download, tags, order = null, user = null}) {
+    constructor({
+                    src = "someBase64String", alt = "Alt Description Of Photo", srcSet = null,
+                    device = { make: NOT_SET, model: NOT_SET },
+                    dimensions = { height: 0, width: 0, sizeInKB: 0 },
+                    captions = { title: NOT_SET, description: NOT_SET },
+                    download = { url: NOT_SET, filename: NOT_SET },
+                    gps = { latitude: 0, longitude: 0, altitude: NOT_SET },
+                    tags
+    }, user = null) {
         this.src = src;
         this.alt = alt;
-        this.width = width;
-        this.height = height;
         this.srcSet = srcSet;
-        this.captions = captions;
-        this.download = download;
+        this.captions = {
+            title: captions.title,
+            description: captions.description,
+        };
+        this.cloudinary = {
+            url: null,
+            publicId: null
+        };
+        this.device = {
+            make: device.make,
+            model: device.model
+        };
+        this.dimensions = {
+            width: dimensions.width,
+            height: dimensions.height,
+            sizeInKB: dimensions.sizeInKB
+        };
+        this.download = {
+            url: download.url,
+            filename: download.filename,
+        };
+        this.gps = {
+            latitude: gps.latitude,
+            longitude: gps.longitude,
+            altitude: gps.altitude,
+        };
         this.tags = tags;
-        this.order = order;
         this.user = user;
-        this.cloudinary = null;
     }
 
     //Getters
@@ -22,16 +51,28 @@ export class Photo {
         return this.alt;
     }
 
+    getSrcSet() {
+        return this.srcSet;
+    }
+
     getWidth() {
-        return this.width;
+        return this.dimensions.width;
     }
 
     getHeight() {
-        return this.height;
+        return this.dimensions.height;
     }
 
-    getSrcSet() {
-        return this.srcSet;
+    getSizeInKB() {
+        return this.dimensions.sizeInKB;
+    }
+
+    getDeviceMake() {
+        return this.device.make;
+    }
+
+    getDeviceModel() {
+        return this.device.model;
     }
 
     getCaptions() {
@@ -46,8 +87,16 @@ export class Photo {
         return this.tags;
     }
 
-    getOrder() {
-        return this.order;
+    getGPSLatitude() {
+        return this.gps.latitude;
+    }
+
+    getGPSLongitude() {
+        return this.gps.longitude;
+    }
+
+    getGPSAltitude() {
+        return this.gps.altitude;
     }
 
     getUser() {
@@ -102,11 +151,6 @@ export class Photo {
     setTags(tags) {
         this._nonEmptyValueRequired(tags, "tags");
         this.tags = tags;
-    }
-
-    setOrder(order){
-        this._nonEmptyValueRequired(order, "order");
-        return this.order = order;
     }
 
     setUser(user){

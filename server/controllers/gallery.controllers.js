@@ -19,7 +19,7 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
             fetchTS: convertTimestamp(new Date())
         };
 
-    let dataCached = await req.redisClient.get(`${req.originalUrl}`);
+    let dataCached = null //await req.redisClient.get(`${req.originalUrl}`);
 
     if(dataCached === null) {
         const
@@ -27,6 +27,8 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
                 .find({}, "-srcSet -cloudinary._id -download._id -captions._id", null)
                 .populate('user', "firstName lastName"),
             processList = [...preprocessedPhotoList];
+
+        console.log("Gallery: ", processList);
 
         gallery.photoCount = await PhotoModel.countDocuments();
         gallery.fullGallery = processList.map((photo, index) => {
@@ -58,7 +60,7 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
         });
 
         // Set Cache
-        await req.redisClient.setEx(req.originalUrl, 120, JSON.stringify(gallery));
+        //await req.redisClient.setEx(req.originalUrl, 120, JSON.stringify(gallery));
 
         return res
             .status(200)
@@ -90,47 +92,29 @@ export const fetchPhotoById = asyncHandler(async (req, res, next) => {
 
 // @access Private
 export const addPhoto = asyncHandler(async (req, res, next) => {
-    const galleryPhotoCount = await PhotoModel.countDocuments();
+    const
+        photo = new Photo(
+            req.body,
+            new mongoose.Types.ObjectId(req.user._id)
+        ),
+        uploadFolderPath = _configureFolderPath(photo.getTags());
 
-    let photo = new Photo(req.body);
-    console.log("Uploading Photo: ", req.body);
-    let uploadFolderPath = _configureFolderPath(photo.getTags());
-    photo.setOrder(galleryPhotoCount + 1);
-    photo.setUser(new mongoose.Types.ObjectId(req.user._id));
-
+    console.log("Photo: ", photo, uploadFolderPath);
     try {
         const cloudinaryResponse = await uploadToCloudinary(photo.getSrc(), uploadFolderPath);
         photo.setSrc(cloudinaryResponse.url);
         photo.setCloudinary(cloudinaryResponse);
 
-        const photoCreated = await PhotoModel.create({
-            src: photo.getSrc(),
-            alt: photo.getAlt(),
-            width: photo.getWidth(),
-            height: photo.getHeight(),
-            srcSet: null,
-            captions: {
-                title: photo.getCaptions().title,
-                description: photo.getCaptions().description,
-            },
-            download: {
-                url: photo.getDownload().url,
-                filename: photo.getDownload().filename
-            },
-            tags: photo.getTags(),
-            user: photo.getUser(),
-            cloudinary: photo.getCloudinary()
-        }, null);
+        const storedPhoto = await PhotoModel.create(photo, null);
 
         return res
             .status(200)
             .json({
-                message: "Photo Uploaded!",
-                data: photoCreated
+                message: "Photo Successfully Uploaded!",
+                data: storedPhoto
             });
     } catch(err) {
         console.error(err);
-
     }
 });
 

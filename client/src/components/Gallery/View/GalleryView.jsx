@@ -39,6 +39,7 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
 
     useEffect(() => {
         if(!isLoadingGallery && photoGallery) {
+            console.log(photoGallery);
             setGallery(photoGallery.data.fullGallery);
             processGalleryView(categoryRequested, photoGallery.data.fullGallery);
         }
