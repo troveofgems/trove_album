@@ -9,6 +9,7 @@ import {TagField} from "../../../components/shared/TagField/TagField";
 import useTags from "../../../hooks/useTag.hook";
 import {useNavigate} from "react-router-dom";
 import {useAddPhotoMutation} from "../../../redux/slices/gallery.api.slice";
+import {constructPhoto} from "../../../utils/photo.utils";
 
 export const AddPhoto = () => {
     const
@@ -69,8 +70,6 @@ export const AddPhoto = () => {
             formattedTS = parsedDate.toLocaleString();
         }
 
-        console.log(exifTags);
-
         return setEXIFData({
             dateTimeOriginal: (formattedTS || UNKNOWN_MARKER),
             fileType: exifTags?.FileType?.value || UNKNOWN_MARKER,
@@ -87,6 +86,7 @@ export const AddPhoto = () => {
             model: exifTags["Model"]?.description || `${UNKNOWN_MARKER} Model`
         });
     }
+
     useEffect(() => {
         if(imgRef.current) {
             let fileSizeInKB = picture ? (picture?.size * 0.001) : 0,
@@ -109,38 +109,15 @@ export const AddPhoto = () => {
 
     const handleSendPhotoToServer = async (e) => {
         e.preventDefault();
-        let photo = {
-            src: imgData,
-            alt: photoAltText,
-            captions: {
-                title: photoTitle,
-                description: photoDescription
-            },
-            device: {
-                make: imgEXIFData.make,
-                model: imgEXIFData.model,
-            },
-            dimensions: {
-                width: dimensions.width,
-                height: dimensions.height,
-                sizeInKB: dimensions.fileSizeInKB
-            },
-            download: {
-                filename: customDownloadName
-            },
-            gps: {
-                latitude: imgEXIFData.gpsLatitude,
-                longitude: imgEXIFData.gpsLongitude,
-                altitude: imgEXIFData.gpsAltitude,
-            },
-            tags
-        }
+        let photo = constructPhoto(
+            imgData, photoAltText, photoTitle, photoDescription,
+            imgEXIFData, dimensions, customDownloadName, tags
+        );
 
         try {
             const res = await addPhoto(photo).unwrap();
-            console.log("Res was: ", res);
             toast.success(res.message);
-            //return navigate("/admin/photo-management");
+            return navigate("/admin/photo-management");
         } catch(err) {
             if(process.env.NODE_ENV === "development") console.error(err);
             return toast.error(err?.data?.message || err.error || err.status);

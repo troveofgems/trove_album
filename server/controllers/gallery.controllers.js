@@ -24,16 +24,15 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
     if(dataCached === null) {
         const
             preprocessedPhotoList = await PhotoModel
-                .find({}, "-srcSet -cloudinary._id -download._id -captions._id", null)
+                .find({}, "-srcSet -cloudinary._id -download._id -captions._id -device._id -dimensions._id -gps._id", null)
                 .populate('user', "firstName lastName"),
             processList = [...preprocessedPhotoList];
-
-        console.log("Gallery: ", processList);
 
         gallery.photoCount = await PhotoModel.countDocuments();
         gallery.fullGallery = processList.map((photo, index) => {
             let processedPhoto = {
-                ...photo._doc
+                ...photo._doc,
+                uniqueKey: null
             };
 
             // Set an Order
@@ -44,6 +43,11 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
             processedPhoto.description = processedPhoto.captions.description;
             delete processedPhoto.captions;
 
+            // Move Dimensions Up a Level For Front-End Consumption
+            processedPhoto.width = processedPhoto.dimensions.width;
+            processedPhoto.height = processedPhoto.dimensions.height;
+            delete processedPhoto.dimensions;
+
             // Transform User
             processedPhoto.user = {
                 fullName: `${processedPhoto.user.firstName} ${processedPhoto.user.lastName}`,
@@ -52,9 +56,18 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
             delete processedPhoto.user.firstName;
             delete processedPhoto.user.lastName;
 
-            // Process Dates To Specific Format
-            processedPhoto.createdAt = convertTimestamp(photo.createdAt);
-            processedPhoto.updatedAt = convertTimestamp(photo.updatedAt);
+            let // Process Dates To Specific Format
+                convertedTimestampCreate = convertTimestamp(photo.createdAt),
+                convertedTimestampLastUpdate = convertTimestamp(photo.updatedAt);
+
+            processedPhoto.createdAt = convertedTimestampCreate;
+            processedPhoto.updatedAt = convertedTimestampCreate === convertedTimestampLastUpdate ?
+                "-" : convertedTimestampLastUpdate;
+
+            // Set the uKey
+            processedPhoto.uniqueKey = processedPhoto.__v +
+             processedPhoto._id.toString().slice(processedPhoto._id.toString().length - 4) +
+             processedPhoto.user._id.toString().slice(processedPhoto.user._id.toString().length - 4);
 
             return processedPhoto;
         });
@@ -99,11 +112,12 @@ export const addPhoto = asyncHandler(async (req, res, next) => {
         ),
         uploadFolderPath = _configureFolderPath(photo.getTags());
 
-    console.log("Photo: ", photo, uploadFolderPath);
     try {
         const cloudinaryResponse = await uploadToCloudinary(photo.getSrc(), uploadFolderPath);
-        photo.setSrc(cloudinaryResponse.url);
+
+        // Store Cloudinary Artifacts To Photo
         photo.setCloudinary(cloudinaryResponse);
+        photo.setSrc(cloudinaryResponse.url);
 
         const storedPhoto = await PhotoModel.create(photo, null);
 
@@ -115,6 +129,7 @@ export const addPhoto = asyncHandler(async (req, res, next) => {
             });
     } catch(err) {
         console.error(err);
+        return next(err);
     }
 });
 
@@ -152,8 +167,9 @@ export const deletePhoto = asyncHandler(async (req, res, next) => {
         ),
         processedPromises = processResultsForAllPromises(resolvedPromises, "Unable to Remove Photo From");
 
-    console.log("Processed Promises? ", processedPromises);
-    let message = "";
+    const allAPIsCompletedSuccessfully = processedPromises.data?.every(item => item.statusCode === 200);
+    let message = allAPIsCompletedSuccessfully ?
+        "Photo Removed!" : "Photo Removal From Some Sources Failed...";
 
     return res
         .status(processedPromises.statusCode)

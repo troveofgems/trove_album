@@ -35,8 +35,8 @@ export const PhotoManagementScreen = () => {
         e.preventDefault();
         try {
             const res = await deletePhoto({ photoId, cloudinaryPublicId: cloudinaryPublicId, frontendAPIRequestTS }).unwrap();
-            const allAPIsCompletedSuccessfully = res?.data?.every(item => item.statusCode === 200);
-            if(res.data.statusCode === 207 && allAPIsCompletedSuccessfully) {
+            console.log(res);
+            if(res.data.statusCode === 207) {
                 return toast.success(res.message);
             }
         } catch(err) {
@@ -74,12 +74,11 @@ export const PhotoManagementScreen = () => {
                 <tr>
                     <th>Order</th>
                     <th className={"text-start"}>Title</th>
-                    <th>Download Filename</th>
+                    <th className={"text-start"}>Download Filename</th>
                     <th>Uploaded By</th>
-                    <th>Uploaded On</th>
+                    <th>System Upload</th>
+                    <th>Last Update</th>
                     <th>Photo Taken On</th>
-                    <th>Last Updated</th>
-                    <th>Version</th>
                     <th>Actions</th>
                 </tr>
                 </thead>
@@ -89,12 +88,11 @@ export const PhotoManagementScreen = () => {
                         <tr key={photo._id}>
                             <td>{photo.order}</td>
                             <td className={"text-start"}>{photo.title}</td>
-                            <td>{photo.download.filename}</td>
+                            <td className={"text-start"}>{photo.download.filename}</td>
                             <td>{photo.user.fullName}</td>
                             <td>{photo.createdAt}</td>
-                            <td>null</td>
                             <td>{photo.updatedAt}</td>
-                            <td>{photo.__v}</td>
+                            <td>{photo?.photoTakenOn || "Unknown"}</td>
                             <td>
                                 <div className={"d-flex justify-content-evenly"}>
                                     <div>

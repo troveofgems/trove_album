@@ -7,6 +7,7 @@ export class Photo {
                     captions = { title: NOT_SET, description: NOT_SET },
                     download = { url: NOT_SET, filename: NOT_SET },
                     gps = { latitude: 0, longitude: 0, altitude: NOT_SET },
+                    photoTakenOn = NOT_SET,
                     tags
     }, user = null) {
         this.src = src;
@@ -30,14 +31,15 @@ export class Photo {
             sizeInKB: dimensions.sizeInKB
         };
         this.download = {
-            url: download.url,
+            url: "",
             filename: download.filename,
         };
         this.gps = {
-            latitude: gps.latitude,
-            longitude: gps.longitude,
+            latitude: gps.latitude === "Unknown" ? 0 : gps.latitude,
+            longitude: gps.longitude === "Unknown" ? 0 : gps.longitude,
             altitude: gps.altitude,
         };
+        this.photoTakenOn = photoTakenOn;
         this.tags = tags;
         this.user = user;
     }

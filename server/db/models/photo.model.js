@@ -9,14 +9,6 @@ const photoSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    width: { // To Deprecate in Favor of Dimensions Nest
-      type: Number,
-      required: false
-    },
-    height: { // To Deprecate in Favor of Dimensions Nest
-      type: Number,
-      required: false
-    },
     srcSet: {
         type: [
             {
@@ -70,6 +62,10 @@ const photoSchema = new mongoose.Schema({
             longitude: { type: Number, required: true },
             altitude: { type: Schema.Types.Mixed, required: true },
         },
+        required: false
+    },
+    photoTakenOn: {
+        type: Schema.Types.Mixed,
         required: false
     },
     tags: {
