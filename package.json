@@ -20,6 +20,8 @@
   "private": true,
   "dependencies": {
     "@dotenvx/dotenvx": "^1.32.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
     "@js-temporal/polyfill": "^0.4.4",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.5.1",

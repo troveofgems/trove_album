@@ -63,9 +63,6 @@ export const PhotoManagementScreen = () => {
 
     return (
         <>
-            <>
-                <p>Using Temporal? {`${testTemporalPolyfill}`}</p>
-            </>
             <div className={"d-flex justify-content-end mb-3"}>
                 <Link className={"btn btn-primary"} to={"/admin/photo-management/addPhoto"}>Add Photo To Gallery</Link>
             </div>
@@ -97,18 +94,17 @@ export const PhotoManagementScreen = () => {
                                 <div className={"d-flex justify-content-evenly"}>
                                     <div>
                                         <EditIcon
-                                            key={photo._id}
+                                            key={`update_${photo._id}`}
                                             onClick={() => handlePhotoUpdate(photo._id)}
                                             className={"actionIcon"}
                                         />
                                     </div>
                                     <div>
                                         <DeleteIcon
-                                            key={photo._id}
+                                            key={`delete_${photo._id}`}
                                             color={"error"}
                                             onClick={(e) => handlePhotoDelete(e, photo._id, photo.cloudinary.publicId)}
                                             className={"actionIcon"}
-
                                         />
                                     </div>
                                 </div>
