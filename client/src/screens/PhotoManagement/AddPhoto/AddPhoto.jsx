@@ -19,7 +19,7 @@ export const AddPhoto = () => {
     /** Page States & Refs */
     const [photo, setPhoto] = useState({});
     const [picture, setPicture] = useState(null);
-    const [imgData, setImgData] = useState(null);
+    const [imgData, setImgData] = useState(null);//
     const [fileOverLimit, setFileOverLimit] = useState(false);
 
     /* Form States */

@@ -7,7 +7,7 @@ import {Outlet} from "react-router-dom";
 import {ToastContainer} from "react-toastify";
 
 function App() {
-    const [currentView, setCurrentView] = useState("Pets");
+    const [currentView, setCurrentView] = useState("All Items");
 
     const changeViewTo = (requestedView) => {
         setCurrentView(requestedView);

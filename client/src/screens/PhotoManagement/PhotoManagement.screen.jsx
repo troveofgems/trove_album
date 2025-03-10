@@ -69,7 +69,7 @@ export const PhotoManagementScreen = () => {
             <div className={"d-flex justify-content-end mb-3"}>
                 <Link className={"btn btn-primary"} to={"/admin/photo-management/addPhoto"}>Add Photo To Gallery</Link>
             </div>
-            <Table variant={"responsive"} striped={true} hover={true} className={"mt-5"}>
+            <Table variant={"responsive"} striped={true} hover={true} className={"mt-5 mb-5"}>
                 <thead>
                 <tr>
                     <th>Order</th>
@@ -108,6 +108,7 @@ export const PhotoManagementScreen = () => {
                                             color={"error"}
                                             onClick={(e) => handlePhotoDelete(e, photo._id, photo.cloudinary.publicId)}
                                             className={"actionIcon"}
+
                                         />
                                     </div>
                                 </div>

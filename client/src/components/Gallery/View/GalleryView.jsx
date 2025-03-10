@@ -39,7 +39,6 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
 
     useEffect(() => {
         if(!isLoadingGallery && photoGallery) {
-            console.log(photoGallery);
             setGallery(photoGallery.data.fullGallery);
             processGalleryView(categoryRequested, photoGallery.data.fullGallery);
         }
@@ -52,7 +51,7 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                     {galleryError?.data?.message || galleryError?.error || UNKNOWN_ERROR}
                 </div>
             ) : (
-                <>
+                <div className={"mb-5"}>
                     <h2 className={"text-start mb-5"}>Currently Viewing: {categoryRequested}</h2>
                     { gallery?.length === 0 ? (
                         <h4>No Photos Currently Uploaded 😭</h4>
@@ -95,7 +94,7 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                             />
                         </>
                     ) }
-                </>
+                </div>
             )}
         </>
     );
