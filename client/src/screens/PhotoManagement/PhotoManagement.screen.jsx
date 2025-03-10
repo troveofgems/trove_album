@@ -1,10 +1,7 @@
 import React, {useMemo, useState} from 'react';
-import {Table} from "react-bootstrap";
+import {Button, Table} from "react-bootstrap";
 import {Link, useNavigate} from "react-router-dom";
 import {useFetchGalleryQuery, useDeletePhotoMutation} from "../../redux/slices/gallery.api.slice";
-
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
 import Pagination from "../../components/shared/Pagination/Pagination";
 
 import "./PhotoManagement.Screen.css";
@@ -23,6 +20,7 @@ export const PhotoManagementScreen = () => {
 
     const currentTableData = useMemo(() => {
         if(!isLoadingGallery && !!photoGallery) {
+            console.log("Photo Gallery: ", photoGallery);
             const firstPageIndex = (currentPage - 1) * pageSizeOverride;
             const lastPageIndex = firstPageIndex + pageSizeOverride;
             return (photoGallery?.data.fullGallery.slice(firstPageIndex, lastPageIndex));
@@ -51,15 +49,13 @@ export const PhotoManagementScreen = () => {
 
     const handlePhotoUpdate = (photoId) => {
         window.alert(`Update Photo! ${photoId}`);
-        return navigate(`/photos/${photoId}`);
+        //return navigate(`/photos/${photoId}`);
     };
 
     const changeDefaultPageSize = (val) => {
         setCurrentPage(1);
         return setPageSizeOverride(val);
     }
-
-    const testTemporalPolyfill = Temporal.Now.instant();
 
     return (
         <>
@@ -82,7 +78,7 @@ export const PhotoManagementScreen = () => {
                 <tbody className={currentTableData?.length > 0 ? "" : "w-100 text-center"}>
                 {
                     currentTableData?.map(photo => (
-                        <tr key={photo._id}>
+                        <tr key={`managePhoto_${photo.uniqueKey}`}>
                             <td>{photo.order}</td>
                             <td className={"text-start"}>{photo.title}</td>
                             <td className={"text-start"}>{photo.download.filename}</td>
@@ -93,18 +89,21 @@ export const PhotoManagementScreen = () => {
                             <td>
                                 <div className={"d-flex justify-content-evenly"}>
                                     <div>
-                                        <EditIcon
-                                            key={`update_${photo._id}`}
+                                        <Button
+                                            variant={"outline-secondary"}
+                                            as="input"
+                                            type="button"
+                                            value="Edit"
                                             onClick={() => handlePhotoUpdate(photo._id)}
-                                            className={"actionIcon"}
                                         />
                                     </div>
                                     <div>
-                                        <DeleteIcon
-                                            key={`delete_${photo._id}`}
-                                            color={"error"}
+                                        <Button
+                                            variant={"outline-danger"}
+                                            as="input"
+                                            type="button"
+                                            value="Delete"
                                             onClick={(e) => handlePhotoDelete(e, photo._id, photo.cloudinary.publicId)}
-                                            className={"actionIcon"}
                                         />
                                     </div>
                                 </div>
