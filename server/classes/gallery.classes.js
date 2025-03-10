@@ -38,6 +38,7 @@ export class Photo {
             latitude: gps.latitude === "Unknown" ? 0 : gps.latitude,
             longitude: gps.longitude === "Unknown" ? 0 : gps.longitude,
             altitude: gps.altitude,
+            mapLink: null
         };
         this.photoTakenOn = photoTakenOn;
         this.tags = tags;

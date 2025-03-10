@@ -66,12 +66,13 @@ export const PhotoManagementScreen = () => {
                 <thead>
                 <tr>
                     <th>Order</th>
-                    <th className={"text-start"}>Title</th>
+                    <th className={"text-start"}>Photo Title</th>
                     <th className={"text-start"}>Download Filename</th>
                     <th>Uploaded By</th>
                     <th>System Upload</th>
-                    <th>Last Update</th>
                     <th>Photo Taken On</th>
+                    <th>Last Update</th>
+                    <th>GPS</th>
                     <th>Actions</th>
                 </tr>
                 </thead>
@@ -84,8 +85,14 @@ export const PhotoManagementScreen = () => {
                             <td className={"text-start"}>{photo.download.filename}</td>
                             <td>{photo.user.fullName}</td>
                             <td>{photo.createdAt}</td>
+                            <td>{photo.photoTakenOn}</td>
                             <td>{photo.updatedAt}</td>
-                            <td>{photo?.photoTakenOn || "Unknown"}</td>
+                            <td>{photo.gps.mapLink === "No Link Available" ? "-" : (
+                                <a href={photo.gps.mapLink} target={"_blank"} referrerPolicy={"no-referrer"}>
+                                    Map
+                                </a>
+                            )}
+                            </td>
                             <td>
                                 <div className={"d-flex justify-content-evenly"}>
                                     <div>

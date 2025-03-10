@@ -17,7 +17,8 @@ import {useNavigate} from "react-router-dom";
 export const NavBar = ({ onViewChange }) => {
     const { userInfo } = useSelector((state) => state.auth);
 
-    const navigate = useNavigate(),
+    const
+        navigate = useNavigate(),
         dispatch = useDispatch();
 
     const [sendLogoutToServer] = useLogoutMutation();
@@ -31,6 +32,10 @@ export const NavBar = ({ onViewChange }) => {
             if(process.env.NODE_ENV === "development") console.error(err);
         }
     };
+
+    const processKeywordSearch = async () => {
+        console.log("Process Keyword Search!");
+    }
 
     return (
         <Navbar expand="lg" className="bg-body-tertiary w-100 mb-5">
@@ -101,7 +106,11 @@ export const NavBar = ({ onViewChange }) => {
                             className="me-2"
                             aria-label="Search"
                         />
-                        <Button variant="outline-success">Search</Button>
+                        <Button
+                            type={"button"}
+                            variant="outline-success"
+                            onClick={processKeywordSearch}
+                        >Search</Button>
                     </Form>
                 </Navbar.Collapse>
             </Container>

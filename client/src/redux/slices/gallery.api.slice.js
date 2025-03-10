@@ -15,6 +15,15 @@ export const galleryApiSlice = apiSlice.injectEndpoints({
            }) ,
             keepUnusedDataFor: 5
         }),
+        searchGalleryByKeyword: builder.query({
+            query: ({ keywords }) => ({
+                url: `${GALLERY_URL}/search`,
+                params: {
+                    keywords,
+                }
+            }),
+            keepUnusedDataFor: 5
+        }),
         addPhoto: builder.mutation({
             query: (data) => ({
                 url: `${GALLERY_URL}`,
@@ -51,6 +60,7 @@ export const galleryApiSlice = apiSlice.injectEndpoints({
 
 export const {
     useFetchGalleryQuery,
+    useSearchGalleryQuery,
     useAddPhotoMutation,
     useUpdatePhotoMutation,
     useDeletePhotoMutation

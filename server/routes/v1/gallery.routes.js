@@ -1,6 +1,13 @@
 import express from 'express';
 import { protectRoute, enforceAdminPrivilege } from "../../middleware/jwt.middleware.js";
-import {addPhoto, deletePhoto, fetchGalleryPhotos, fetchPhotoById, updatePhoto} from "../../controllers/gallery.controllers.js";
+import {
+    addPhoto,
+    deletePhoto,
+    fetchGalleryPhotos,
+    fetchPhotoById,
+    searchGalleryByKeyword,
+    updatePhoto
+} from "../../controllers/gallery.controllers.js";
 import {cacheMiddleware} from "../../middleware/cache.middleware.js";
 import {apiBenchmarkMiddleware} from "../../middleware/api.benchmark.middleware.js";
 
@@ -169,6 +176,28 @@ galleryRouter
      *       '500':
      *         description: Internal server error
      */
-    .delete(protectRoute, enforceAdminPrivilege, apiBenchmarkMiddleware, deletePhoto)
+    .delete(protectRoute, enforceAdminPrivilege, apiBenchmarkMiddleware, deletePhoto);
+
+galleryRouter
+    .route("/photos/search")
+    /**
+     * @swagger
+     * /v1/api/gallery/photos:
+     *   get:
+     *     tags:
+     *      - Photo Gallery
+     *     summary: Fetch Full Gallery
+     *     description: Fetches all photos from the gallery
+     *     responses:
+     *       '200':
+     *         description: Gallery Fetched
+     *       '400':
+     *         description: Unable To Fetch Gallery
+     *       '404':
+     *         description: Resource Not Found
+     *       '500':
+     *         description: Internal server error
+     */
+    .get(searchGalleryByKeyword);
 
 export default galleryRouter;

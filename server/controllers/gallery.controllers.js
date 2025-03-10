@@ -9,6 +9,8 @@ import {
     processBenchmarks, trackAPIReceiveTime,
 } from "../util/api.benchmarker.utils.js";
 import {processResultsForAllPromises, waitForPromises} from "../util/promise.resolver.utils.js";
+import {setCloudinaryFolderPath} from "../util/photo.utils.js";
+
 
 // @access Public
 export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
@@ -32,6 +34,12 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
         gallery.fullGallery = processList.map((photo, index) => {
             let processedPhoto = {
                 ...photo._doc,
+                gps: {
+                    latitude: null,
+                    longitude: null,
+                    altitude: null,
+                    mapLink: null
+                },
                 uniqueKey: null
             };
 
@@ -64,10 +72,23 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
             processedPhoto.updatedAt = convertedTimestampCreate === convertedTimestampLastUpdate ?
                 "-" : convertedTimestampLastUpdate;
 
+            processedPhoto.photoTakenOn = photo.photoTakenOn === "Unknown" ?
+                "No Data" : photo.photoTakenOn;
+
             // Set the uKey
             processedPhoto.uniqueKey = processedPhoto.__v +
              processedPhoto._id.toString().slice(processedPhoto._id.toString().length - 4) +
              processedPhoto.user._id.toString().slice(processedPhoto.user._id.toString().length - 4);
+
+            // Build GPS Link
+            processedPhoto.gps.altitude = photo.gps.altitude;
+            processedPhoto.gps.latitude = photo.gps.latitude;
+            processedPhoto.gps.longitude = photo.gps.longitude;
+            processedPhoto.gps.mapLink =
+                processedPhoto.gps.altitude === "Unknown" &&
+                processedPhoto.gps.latitude === 0 &&
+                processedPhoto.gps.longitude === 0 ?
+                    "No Link Available" : `https://openstreetmap.org/?mlat=${processedPhoto.gps.latitude}&mlon=-${processedPhoto.gps.longitude}`;
 
             return processedPhoto;
         });
@@ -103,6 +124,28 @@ export const fetchPhotoById = asyncHandler(async (req, res, next) => {
     }
 });
 
+// @access Public
+export const searchGalleryByKeyword = asyncHandler(async(req, res, next) => {
+    const keywords = req.query.keywords ? {
+        name: {
+            $regex: req.query.keywords,
+            $options: "i"
+        }
+    } : {};
+
+    const docCount = await PhotoModel.countDocuments({...keywords});
+    const gallery = await PhotoModel.find({...keywords}, null, null);
+
+    console.log("Search Gallery By Keyword Filtering...", keywords, docCount, gallery);
+
+    console.log("Keywords: ", keywords);
+
+    return res.status(200).json({
+        data: gallery,
+        count: docCount
+    });
+})
+
 // @access Private
 export const addPhoto = asyncHandler(async (req, res, next) => {
     const
@@ -110,7 +153,7 @@ export const addPhoto = asyncHandler(async (req, res, next) => {
             req.body,
             new mongoose.Types.ObjectId(req.user._id)
         ),
-        uploadFolderPath = _configureFolderPath(photo.getTags());
+        uploadFolderPath = setCloudinaryFolderPath(photo.getTags());
 
     try {
         const cloudinaryResponse = await uploadToCloudinary(photo.getSrc(), uploadFolderPath);
@@ -157,7 +200,7 @@ export const updatePhoto = asyncHandler(async (req, res, next) => {
 export const deletePhoto = asyncHandler(async (req, res, next) => {
     trackAPIReceiveTime(req);
 
-    const // Attempt Removal of Resources From Cloudinary Storage and MongoDB
+    const // Attempts Removal of Photo Resource From Cloudinary Storage and MongoDB
         resolvedPromises = await waitForPromises(
             [
                 removeFromCloudinary(sanitize(req.body.cloudinaryPublicId)),
@@ -180,33 +223,8 @@ export const deletePhoto = asyncHandler(async (req, res, next) => {
         });
 });
 
-const _configureFolderPath = (tags) => {
-    let folderPath = "";
-    const
-        setForFamilyAndFriends = tags.indexOf("Family & Friends") >= 0,
-        setForPets = tags.indexOf("Pets") >= 0,
-        setForFoodAndBaking = tags.indexOf("Food & Baking") >= 0,
-        setForGardening = tags.indexOf("Gardening") >= 0,
-        setForTravel = tags.indexOf("Travel") >= 0;
-
-    if(setForFamilyAndFriends) {
-        folderPath = "tog/family";
-    } else if (setForPets) {
-        folderPath = "tog/pets";
-    } else if (setForFoodAndBaking) {
-        folderPath = "tog/food";
-    } else if (setForGardening) {
-        folderPath = "tog/gardening";
-    } else if (setForTravel) {
-        folderPath = "tog/travel";
-    } else {
-        folderPath = "tog/uncategorized"
-    }
-
-    return folderPath;
-}
-
 function convertTimestamp(timestamp) {
+    // Replace Using Temporal
     const
         date = new Date(timestamp),
         months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
