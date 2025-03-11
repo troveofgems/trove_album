@@ -12,6 +12,7 @@ import {Temporal} from "@js-temporal/polyfill";
 export const PhotoManagementScreen = () => {
     const
         DefaultPageSize = 10,
+        itemsPerPageCommands = [1, 5, 10, 20],
         navigate = useNavigate(),
         [currentPage, setCurrentPage] = useState(1),
         [pageSizeOverride, setPageSizeOverride] = useState(DefaultPageSize),
@@ -70,7 +71,7 @@ export const PhotoManagementScreen = () => {
                     <th className={"text-start"}>Download Filename</th>
                     <th>Uploaded By</th>
                     <th>System Upload</th>
-                    <th>Photo Taken On</th>
+                    <th className={"text-start"}>Photo Taken On</th>
                     <th>Last Update</th>
                     <th>GPS</th>
                     <th>Actions</th>
@@ -85,7 +86,7 @@ export const PhotoManagementScreen = () => {
                             <td className={"text-start"}>{photo.download.filename}</td>
                             <td>{photo.user.fullName}</td>
                             <td>{photo.createdAt}</td>
-                            <td>{photo.photoTakenOn}</td>
+                            <td className={"text-start"}>{photo.photoTakenOn}</td>
                             <td>{photo.updatedAt}</td>
                             <td>{photo.gps.mapLink === "No Link Available" ? "-" : (
                                 <a href={photo.gps.mapLink} target={"_blank"} referrerPolicy={"no-referrer"}>
@@ -140,30 +141,16 @@ export const PhotoManagementScreen = () => {
                         <div className={"d-flex row text-end mb-5"}>
                             <small>Items Per Page</small>
                             <div>
-                                <button type={"button"} onClick={() => changeDefaultPageSize(1)}
-                                        className={classnames('maxItemListSelected', {
-                                            selected: (pageSizeOverride === 1)
-                                        })}>
-                                    1
-                                </button>
-                                <button type={"button"} onClick={() => changeDefaultPageSize(5)}
-                                        className={classnames('maxItemListSelected', {
-                                            selected: (pageSizeOverride === 5)
-                                        })}>
-                                    5
-                                </button>
-                                <button type={"button"} onClick={() => changeDefaultPageSize(10)}
-                                        className={classnames('maxItemListSelected', {
-                                            selected: (pageSizeOverride === 10)
-                                        })}>
-                                    10
-                                </button>
-                                <button type={"button"} onClick={() => changeDefaultPageSize(20)}
-                                        className={classnames('maxItemListSelected', {
-                                            selected: (pageSizeOverride === 20)
-                                        })}>
-                                    20
-                                </button>
+                                {
+                                    itemsPerPageCommands.map(command => (
+                                        <button type={"button"} onClick={() => changeDefaultPageSize(command)}
+                                                className={classnames('maxItemListSelected', {
+                                                    selected: (pageSizeOverride === command)
+                                                })}>
+                                            {command}
+                                        </button>
+                                    ))
+                                }
                             </div>
                         </div>
                     </>

@@ -1,16 +1,21 @@
-import { uploadToCloudinary, removeFromCloudinary } from "../services/cloudinary.service.js";
-import { Photo } from "../classes/gallery.classes.js";
-import { asyncHandler } from "../middleware/asyncHandler.middleware.js";
-import PhotoModel from "../db/models/photo.model.js";
 import sanitize from "mongo-sanitize";
 import mongoose from "mongoose";
-import {
-    captureTimestamp,
-    processBenchmarks, trackAPIReceiveTime,
-} from "../util/api.benchmarker.utils.js";
-import {processResultsForAllPromises, waitForPromises} from "../util/promise.resolver.utils.js";
-import {setCloudinaryFolderPath} from "../util/photo.utils.js";
+import { asyncHandler } from "../middleware/asyncHandler.middleware.js";
 
+// Classes Models & Services
+import { Photo } from "../classes/gallery.classes.js";
+import PhotoModel from "../db/models/photo.model.js";
+import { uploadToCloudinary, removeFromCloudinary } from "../services/cloudinary.service.js";
+
+// Utils
+import {processBenchmarks, trackAPIReceiveTime} from "../util/api.benchmarker.utils.js";
+import {processResultsForAllPromises, waitForPromises} from "../util/promise.resolver.utils.js";
+import {formatPhotoForFrontEndConsumption, setCloudinaryFolderPath,} from "../util/photo.utils.js";
+import {markTimestamp} from "../util/time.utils.js";
+import {
+    DELETE_DEFAULT_ERROR_MESSAGE, DELETE_DEFAULT_MIXED_MESSAGE,
+    DELETE_DEFAULT_SUCCESS_MESSAGE
+} from "../constants/app.error.message.constants.js";
 
 // @access Public
 export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
@@ -18,7 +23,7 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
         gallery = {
             fullGallery: [],
             photoCount: 0,
-            fetchTS: convertTimestamp(new Date())
+            fetchTS: markTimestamp()
         };
 
     let dataCached = null //await req.redisClient.get(`${req.originalUrl}`);
@@ -31,67 +36,8 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
             processList = [...preprocessedPhotoList];
 
         gallery.photoCount = await PhotoModel.countDocuments();
-        gallery.fullGallery = processList.map((photo, index) => {
-            let processedPhoto = {
-                ...photo._doc,
-                gps: {
-                    latitude: null,
-                    longitude: null,
-                    altitude: null,
-                    mapLink: null
-                },
-                uniqueKey: null
-            };
-
-            // Set an Order
-            processedPhoto.order = (index || 0);
-
-            // Move Captions Up a Level For Front-End Consumption
-            processedPhoto.title = processedPhoto.captions.title;
-            processedPhoto.description = processedPhoto.captions.description;
-            delete processedPhoto.captions;
-
-            // Move Dimensions Up a Level For Front-End Consumption
-            processedPhoto.width = processedPhoto.dimensions.width;
-            processedPhoto.height = processedPhoto.dimensions.height;
-            delete processedPhoto.dimensions;
-
-            // Transform User
-            processedPhoto.user = {
-                fullName: `${processedPhoto.user.firstName} ${processedPhoto.user.lastName}`,
-                _id: processedPhoto.user._id
-            };
-            delete processedPhoto.user.firstName;
-            delete processedPhoto.user.lastName;
-
-            let // Process Dates To Specific Format
-                convertedTimestampCreate = convertTimestamp(photo.createdAt),
-                convertedTimestampLastUpdate = convertTimestamp(photo.updatedAt);
-
-            processedPhoto.createdAt = convertedTimestampCreate;
-            processedPhoto.updatedAt = convertedTimestampCreate === convertedTimestampLastUpdate ?
-                "-" : convertedTimestampLastUpdate;
-
-            processedPhoto.photoTakenOn = photo.photoTakenOn === "Unknown" ?
-                "No Data" : photo.photoTakenOn;
-
-            // Set the uKey
-            processedPhoto.uniqueKey = processedPhoto.__v +
-             processedPhoto._id.toString().slice(processedPhoto._id.toString().length - 4) +
-             processedPhoto.user._id.toString().slice(processedPhoto.user._id.toString().length - 4);
-
-            // Build GPS Link
-            processedPhoto.gps.altitude = photo.gps.altitude;
-            processedPhoto.gps.latitude = photo.gps.latitude;
-            processedPhoto.gps.longitude = photo.gps.longitude;
-            processedPhoto.gps.mapLink =
-                processedPhoto.gps.altitude === "Unknown" &&
-                processedPhoto.gps.latitude === 0 &&
-                processedPhoto.gps.longitude === 0 ?
-                    "No Link Available" : `https://openstreetmap.org/?mlat=${processedPhoto.gps.latitude}&mlon=-${processedPhoto.gps.longitude}`;
-
-            return processedPhoto;
-        });
+        gallery.fullGallery = processList
+            .map((sourceData, index) => formatPhotoForFrontEndConsumption(sourceData, index));
 
         // Set Cache
         //await req.redisClient.setEx(req.originalUrl, 120, JSON.stringify(gallery));
@@ -208,11 +154,11 @@ export const deletePhoto = asyncHandler(async (req, res, next) => {
             ], ["Cloudinary", "MongoDB"],
             next
         ),
-        processedPromises = processResultsForAllPromises(resolvedPromises, "Unable to Remove Photo From");
+        processedPromises = processResultsForAllPromises(resolvedPromises, DELETE_DEFAULT_ERROR_MESSAGE);
 
     const allAPIsCompletedSuccessfully = processedPromises.data?.every(item => item.statusCode === 200);
     let message = allAPIsCompletedSuccessfully ?
-        "Photo Removed!" : "Photo Removal From Some Sources Failed...";
+        DELETE_DEFAULT_SUCCESS_MESSAGE : DELETE_DEFAULT_MIXED_MESSAGE;
 
     return res
         .status(processedPromises.statusCode)
@@ -222,15 +168,3 @@ export const deletePhoto = asyncHandler(async (req, res, next) => {
             benchmarks: processBenchmarks(req)
         });
 });
-
-function convertTimestamp(timestamp) {
-    // Replace Using Temporal
-    const
-        date = new Date(timestamp),
-        months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        formattedDate = `${months[date.getMonth()]} ${date.getDate().toString().padStart(2, '0')}, ${date.getFullYear()}`,
-        hours = date.getHours().toString().padStart(2, '0'),
-        minutes = date.getMinutes().toString().padStart(2, '0');
-
-    return `${formattedDate} @ ${hours}:${minutes}`;
-}
