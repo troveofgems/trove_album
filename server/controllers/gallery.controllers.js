@@ -20,7 +20,6 @@ import {
 
 // @access Public
 export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
-    console.log("req: ", req.app.redisClient);
     let
         gallery = {
             fullGallery: [],
