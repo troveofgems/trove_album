@@ -5,7 +5,6 @@ export const redisClient = (() => {
         {
             url: process.env.REDIS_EXTERNAL_URL,
             pingInterval: 4 * 60 * 1000,
-            legacyMode: true,
             socket: {
                 tls: false
             }
@@ -22,8 +21,6 @@ export const redisClient = (() => {
     } catch (e) {
         console.error('Redis Client Error: ', e);
         return null;
-    } finally {
-        console.log("Redis Connection Attempted...");
     }
 })();
 

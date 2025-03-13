@@ -12,6 +12,7 @@ import {processBenchmarks, trackAPIReceiveTime} from "../util/api.benchmarker.ut
 import {processResultsForAllPromises, waitForPromises} from "../util/promise.resolver.utils.js";
 import {formatPhotoForFrontEndConsumption, setCloudinaryFolderPath,} from "../util/photo.utils.js";
 import {markTimestamp} from "../util/time.utils.js";
+import {cacheResults, probeForCache} from "../util/cache.utils.js";
 import {
     DELETE_DEFAULT_ERROR_MESSAGE, DELETE_DEFAULT_MIXED_MESSAGE,
     DELETE_DEFAULT_SUCCESS_MESSAGE
@@ -23,39 +24,34 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
         gallery = {
             fullGallery: [],
             photoCount: 0,
-            fetchTS: markTimestamp()
-        };
+            fetchTS: markTimestamp(),
+            pagination: {}
+        },
+        existentCache = await probeForCache(req);
 
-    let dataCached = null //await req.redisClient.get(`${req.originalUrl}`);
+    if(existentCache) return res
+        .status(200)
+        .json(existentCache);
 
-    if(dataCached === null) {
-        const
-            preprocessedPhotoList = await PhotoModel
-                .find({}, "-srcSet -cloudinary._id -download._id -captions._id -device._id -dimensions._id -gps._id", null)
-                .populate('user', "firstName lastName"),
-            processList = [...preprocessedPhotoList];
+    const // No Cache Exists...Continue with Request
+        preprocessedPhotoList = await PhotoModel
+            .find({}, "-srcSet -cloudinary._id -download._id -captions._id -device._id -dimensions._id -gps._id", null)
+            .populate('user', "firstName lastName"),
+        processList = [...preprocessedPhotoList];
 
-        gallery.photoCount = await PhotoModel.countDocuments();
-        gallery.fullGallery = processList
-            .map((sourceData, index) => formatPhotoForFrontEndConsumption(sourceData, index));
+    gallery.photoCount = await PhotoModel.countDocuments();
+    gallery.fullGallery = processList
+        .map((sourceData, index) => formatPhotoForFrontEndConsumption(sourceData, index));
 
-        // Set Cache
-        //await req.redisClient.setEx(req.originalUrl, 120, JSON.stringify(gallery));
+    // Set Cache
+    await cacheResults(req, gallery);
 
-        return res
-            .status(200)
-            .json({
-                data: gallery,
-                fromCache: false
-            });
-    } else {
-        return res
-            .status(200)
-            .json({
-                data: JSON.parse(dataCached),
-                fromCache: true
-            });
-    }
+    return res
+        .status(200)
+        .json({
+            data: gallery,
+            fromCache: false
+        });
 });
 
 // @access Public
