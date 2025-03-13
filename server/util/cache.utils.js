@@ -11,12 +11,12 @@ export const probeForCache = async (req) => {
 }
 export const cacheResults = async (req, dataToCache, expires = 120) => {
     if(cachingIsEnabled) {
-        await req.redisClient.setEx(req.originalUrl, expires, JSON.stringify(dataToCache));
+        await req.app.redisClient.setEx(req.originalUrl, expires, JSON.stringify(dataToCache));
     }
     return req;
 }
 
-const _fetchCache = async (req) => await req.redisClient.get(`${req.originalUrl}`);
+const _fetchCache = async (req) => await req.app.redisClient.get(`${req.originalUrl}`);
 const _setCacheArtifacts = async (cache) => {
     return {
         data: !!cache ? JSON.parse(cache) : null,

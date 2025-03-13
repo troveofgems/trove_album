@@ -8,7 +8,6 @@ import {
     searchGalleryByKeyword,
     updatePhoto
 } from "../../controllers/gallery.controllers.js";
-import {cacheMiddleware} from "../../middleware/cache.middleware.js";
 import {apiBenchmarkMiddleware} from "../../middleware/api.benchmark.middleware.js";
 
 
@@ -34,7 +33,7 @@ galleryRouter
      *       '500':
      *         description: Internal server error
      */
-    .get(cacheMiddleware, fetchGalleryPhotos)
+    .get(fetchGalleryPhotos)
     /**
      * @swagger
      * /v1/api/gallery/photos:

@@ -5,7 +5,7 @@ export const galleryApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         fetchGallery: builder.query({
             query: () => ({
-                url: `${GALLERY_URL}`,
+                url: `${GALLERY_URL}`
             }),
             keepUnusedDataFor: 5
         }),

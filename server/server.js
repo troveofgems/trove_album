@@ -2,13 +2,11 @@ import express from 'express';
 import connectDB from "./db/db.config.js";
 import {setApplicationStandardsAndLimits} from "./config/standards/set.application.standards.js";
 import {enableApplicationSecurity} from "./config/security/enable.app.security.js";
-import {mountMainRouter, mountErrorRoutes} from "./routes/main.router.js";
-
-//import {connectToRedis} from "./services/redis.service.js";
+import {mountMainRouter} from "./routes/main.router.js";
 import {assignAssets} from "./config/standards/content.serve.js";
 
 const
-    connections = { appServer: null, dbConn: null, redisConn: null },
+    connections = { appServer: null, dbConn: null, redisClient: null },
     port = process.env.PORT || 3003,
     app = express();
 
