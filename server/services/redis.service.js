@@ -52,6 +52,7 @@ export class RedisService extends EventEmitter {
             this.isConnected = false;
             this.emit('error', err);
             this.notifyConnectionStatus(false);
+            this.onConnectionChange();
         });
 
         this.client.on('end', () => {

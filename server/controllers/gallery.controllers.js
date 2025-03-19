@@ -1,5 +1,5 @@
-import sanitize from "mongo-sanitize";
 import mongoose from "mongoose";
+import sanitize from "mongo-sanitize";
 import { asyncHandler } from "../middleware/asyncHandler.middleware.js";
 
 // Classes Models & Services
@@ -34,8 +34,9 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
         .json(existentCache);
 
     const // No Cache Exists...Continue with Request
+        excludePhotoKeys = "-srcSet -cloudinary._id -download._id -captions._id -device._id -dimensions._id -gps._id",
         preprocessedPhotoList = await PhotoModel
-            .find({}, "-srcSet -cloudinary._id -download._id -captions._id -device._id -dimensions._id -gps._id", null)
+            .find({}, excludePhotoKeys, null)
             .populate('user', "firstName lastName"),
         processList = [...preprocessedPhotoList];
 
@@ -57,36 +58,22 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
 // @access Public
 export const fetchPhotoById = asyncHandler(async (req, res, next) => {
     try {
-        const galleryPhoto = await PhotoModel.findById(req.params.id, "", null);
+        const
+            excludePhotoKeys = "",
+            galleryPhoto = await PhotoModel
+                .findById(req.params.id, excludePhotoKeys, null)
+                .populate('user');
+
+        console.log("Photo Retrieved?", galleryPhoto);
+
         return res.status(200).json({
-            data: galleryPhoto
+            data: galleryPhoto,
+            fetchTS: markTimestamp(),
         });
     } catch(err) {
         return next(err);
     }
 });
-
-// @access Public
-export const searchGalleryByKeyword = asyncHandler(async(req, res, next) => {
-    const keywords = req.query.keywords ? {
-        name: {
-            $regex: req.query.keywords,
-            $options: "i"
-        }
-    } : {};
-
-    const docCount = await PhotoModel.countDocuments({...keywords});
-    const gallery = await PhotoModel.find({...keywords}, null, null);
-
-    console.log("Search Gallery By Keyword Filtering...", keywords, docCount, gallery);
-
-    console.log("Keywords: ", keywords);
-
-    return res.status(200).json({
-        data: gallery,
-        count: docCount
-    });
-})
 
 // @access Private
 export const addPhoto = asyncHandler(async (req, res, next) => {
@@ -164,3 +151,25 @@ export const deletePhoto = asyncHandler(async (req, res, next) => {
             benchmarks: processBenchmarks(req)
         });
 });
+
+// @access Public
+export const searchGalleryByKeyword = asyncHandler(async(req, res, next) => {
+    const keywords = req.query.keywords ? {
+        name: {
+            $regex: req.query.keywords,
+            $options: "i"
+        }
+    } : {};
+
+    const docCount = await PhotoModel.countDocuments({...keywords});
+    const gallery = await PhotoModel.find({...keywords}, null, null);
+
+    console.log("Search Gallery By Keyword Filtering...", keywords, docCount, gallery);
+
+    console.log("Keywords: ", keywords);
+
+    return res.status(200).json({
+        data: gallery,
+        count: docCount
+    });
+})
