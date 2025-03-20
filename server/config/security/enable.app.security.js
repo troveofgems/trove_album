@@ -8,9 +8,12 @@ const limiter = rateLimit({
     standardHeaders: 'draft-8', // draft-6: `RateLimit-*` headers; draft-7 & draft-8: combined `RateLimit` header
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
     // store: ... , // Redis, Memcached, etc. See below.
-})
+});
+
+const isDevelopmentMode = process.env.NODE_ENV === 'development';
 
 export const enableApplicationSecurity = (app) => {
+    console.log("=> SECURITY PACKAGES");
     const cspConfig = {
         directives: {
             defaultSrc: ["'self'"],
@@ -37,17 +40,19 @@ export const enableApplicationSecurity = (app) => {
     app.use(helmet({
         contentSecurityPolicy: cspConfig,
     }));
-    if(process.env.NODE_ENV === 'development') {
-        console.log("===========SECURITY PACKAGES============");
-        console.log("Enabled: Helmet");
+    if(isDevelopmentMode) {
+        console.log("Helmet Enabled & Provided CSP Config");
     }
+
     app.use(hpp({}));
-    if(process.env.NODE_ENV === 'development') {
-        console.log("Enabled: HPP");
+    if(isDevelopmentMode) {
+        console.log("HPP Enabled!");
     }
 /*    app.use(limiter);
     if(process.env.NODE_ENV === 'development') {
         console.log("Enabled: Express Rate Limiter");
     }*/
+
+    if(isDevelopmentMode) console.log("");
     return app;
 }

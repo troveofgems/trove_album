@@ -4,6 +4,7 @@ import {setApplicationStandardsAndLimits} from "./config/standards/set.applicati
 import {enableApplicationSecurity} from "./config/security/enable.app.security.js";
 import {mountMainRouter} from "./routes/main.router.js";
 import {assignAssets} from "./config/standards/content.serve.js";
+import {setRedisClientForApplication} from "./services/redis.service.js";
 
 const
     connections = { appServer: null, dbConn: null, redisClient: null },
@@ -15,6 +16,7 @@ connectDB()
     .then((dbConn) => {
         connections.dbConn = dbConn;
         setApplicationStandardsAndLimits(app);
+        setRedisClientForApplication(app);
         enableApplicationSecurity(app);
         mountMainRouter(app);
         assignAssets(app);
@@ -22,8 +24,7 @@ connectDB()
         app.listen(port, () => {
             connections.appServer = app;
             if(process.env.NODE_ENV === "development") {
-                console.log(`✨ Photo Album Up & Running on port: ${port} ✨`);
-                //console.log(connections);
+                console.log(`✨. Photo Album Up & Running on port: ${port} ✨`);
             }
         });
     })

@@ -13,6 +13,7 @@ import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import { UNKNOWN_ERROR } from "../../../constants/frontend.constants";
 import { useFetchGalleryQuery } from "../../../redux/slices/gallery.api.slice";
 import {Loader} from "../../shared/Loader/Loader";
+import {NoPhotosBlock} from "./NoPhotos/NoPhotos";
 
 export const GalleryView = ({ currentView: categoryRequested }) => {
     const
@@ -41,18 +42,9 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
             filteredCategoryView.map(item => console.log(item.tags));
             const photoGroups = new Map();
 
-            // Extract unique location-time pairs
-            const result = [...new Set(
-                filteredCategoryView.map(image =>
-                    `${image.tags[image.tags.length - 1]} - ${image.tags[image.tags.length - 2]}`
-                )
-            )];
-
-            console.log('Unique location-time pairs:', result);
-
             // Process each image
             filteredCategoryView.forEach(image => {
-                const locationTime = `${image.tags[image.tags.length - 1]} - ${image.tags[image.tags.length - 2]}`;
+                const locationTime = `${image.tags[image.tags.length - 1]} ${image.tags[image.tags.length - 2]}`;
 
                 console.log("Location Time: ", locationTime);
 
@@ -63,12 +55,12 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                 photoGroups.get(locationTime).push(image);
             });
 
-            photoGroups.forEach((photos, locationTime) => {
+/*            photoGroups.forEach((photos, locationTime) => {
                 console.log(`\n${locationTime}:`);
                 console.log('Photos:', photos.map(p => ({ ...p })));
             });
-
             console.log(photoGroups);
+            */
             setTravelPhotoGroups(photoGroups);
         }
         setGalleryTypeView(categoryToShow);
@@ -79,10 +71,11 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
         setIndex(photoIndex);
     };
 
-    const openLightboxFromSubset = (photoIndex, subsetPhotoList) => {
-        console.log("Using openLightboxFromSubset...", photoIndex, subsetPhotoList);
-        setOpen(true);
-        setIndex(photoIndex);
+    const adjustBoxSizing = (containerWidth) => {
+        if (containerWidth < 400) return 1;
+        if (containerWidth < 800) return 3;
+        if (containerWidth < 1200) return 5;
+        return 7;
     }
 
     useEffect(() => {
@@ -104,23 +97,18 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                         <>
                             <h2 className={"text-start mb-5"}>Gallery View: {categoryRequested}</h2>
                             {gallery?.length === 0 ? (
-                                <h4>No Photos Currently Uploaded 😭</h4>
+                                <NoPhotosBlock />
                             ) : (
                                 <>
                                     {[...travelPhotoGroups.entries()].map(([locationTime, subsetPhotoList], index) => (
-                                        <>
+                                        <div className={"mb-5"}>
                                             <h3 className={"text-decoration-underline text-start mt-4"}>{locationTime}</h3>
                                             <MasonryPhotoAlbum
                                                 photos={subsetPhotoList}
-                                                columns={(containerWidth) => {
-                                                    if (containerWidth < 400) return 1;
-                                                    if (containerWidth < 800) return 3;
-                                                    if (containerWidth < 1200) return 5;
-                                                    return 7;
-                                                }}
-                                                onClick={() => openLightboxFromSubset(index, subsetPhotoList)}
+                                                columns={adjustBoxSizing}
+                                                onClick={() => openLightbox(index)}
                                             />
-                                        </>
+                                        </div>
                                     ))}
                                     <Lightbox
                                         slides={gallery}
@@ -154,17 +142,12 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                         <div className={"mb-5"}>
                             <h2 className={"text-start mb-5"}>Gallery View: {categoryRequested}</h2>
                             { gallery?.length === 0 ? (
-                                <h4>No Photos Currently Uploaded 😭</h4>
+                                <NoPhotosBlock />
                             ) : (
                                 <>
                                     <MasonryPhotoAlbum
                                         photos={gallery}
-                                        columns={(containerWidth) => {
-                                            if (containerWidth < 400) return 1;
-                                            if (containerWidth < 800) return 3;
-                                            if (containerWidth < 1200) return 5;
-                                            return 7;
-                                        }}
+                                        columns={adjustBoxSizing}
                                         onClick={({index}) => openLightbox(index)}
                                     />
                                     <Lightbox

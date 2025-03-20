@@ -11,7 +11,7 @@ export const probeForCache = async (req) => {
 }
 export const cacheResults = async (req, dataToCache, expires = 120) => {
     if(cachingIsEnabled) {
-        await req.app.redisClient.setEx(req.originalUrl, expires, JSON.stringify(dataToCache));
+        await req.app.redisClient.set(req.originalUrl, JSON.stringify(dataToCache));
     }
     return req;
 }

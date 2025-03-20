@@ -27,6 +27,6 @@ export const removeFromCloudinary = async(publicId) => {
         return await cloudinary.uploader.destroy(publicId);
     } catch(err) {
         console.error(err);
-        //throw err;
+        //throw err; TODO: Pass next(err);
     }
 }

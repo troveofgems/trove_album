@@ -13,28 +13,32 @@ import {useSelector, useDispatch} from "react-redux";
 import {useLogoutMutation} from "../../redux/slices/users.api.slice";
 import {clearCredentials} from "../../redux/slices/auth.slice";
 import {useNavigate} from "react-router-dom";
+import {useState} from "react";
 
 export const NavBar = ({ onViewChange }) => {
     const { userInfo } = useSelector((state) => state.auth);
 
     const
         navigate = useNavigate(),
-        dispatch = useDispatch();
+        dispatch = useDispatch(),
+        [keywords, setKeywords] = useState(null);
 
     const [sendLogoutToServer] = useLogoutMutation();
 
     const handleLogout = async () => {
         try {
             await sendLogoutToServer().unwrap();
-            dispatch(clearCredentials());
-            navigate("/");
+
         } catch(err) {
             if(process.env.NODE_ENV === "development") console.error(err);
         }
+        dispatch(clearCredentials());
+        navigate("/");
     };
 
-    const processKeywordSearch = async () => {
-        console.log("Process Keyword Search!");
+    const processKeywordSearch = async (e) => {
+        e.preventDefault();
+        console.log("Process Keyword Search!", keywords);
     }
 
     return (
@@ -69,6 +73,9 @@ export const NavBar = ({ onViewChange }) => {
                             <Link to={"/"} className={"innerLink dropdown-item"} onClick={() => onViewChange("Travel")}>
                                 Travel
                             </Link>
+                            <Link to={"/"} className={"innerLink dropdown-item"} onClick={() => onViewChange("Videos")}>
+                                Videos
+                            </Link>
                             <NavDropdown.Divider />
                             {
                                 !userInfo ? (
@@ -99,17 +106,18 @@ export const NavBar = ({ onViewChange }) => {
                             }
                         </NavDropdown>
                     </Nav>
-                    <Form className="d-flex">
+                    <Form className="d-flex" onSubmit={processKeywordSearch}>
                         <Form.Control
+                            id={"searchKeywords"}
                             type="search"
                             placeholder="Search"
                             className="me-2"
                             aria-label="Search"
+                            onChange={(evt) => setKeywords(evt.target.value)}
                         />
                         <Button
-                            type={"button"}
+                            type={"submit"}
                             variant="outline-success"
-                            onClick={processKeywordSearch}
                         >Search</Button>
                     </Form>
                 </Navbar.Collapse>

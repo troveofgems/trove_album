@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const connectDB = async () => {
+    console.log("=> Mongo DB");
     try {
         const conn = await mongoose.connect(process.env.MONGO_URI,{
             auth: {
@@ -10,11 +11,10 @@ const connectDB = async () => {
             pass: process.env.MONGO_PASS,
             ssl: true
         });
-
-        console.log("Connected To Database!");
+        console.log("Connected To Database!\n");
         return conn;
     } catch(err) {
-        console.error("Unable To Connect to MongoDB", err);
+        console.error("Unable To Connect...\n", err);
         process.exit(1);
     }
 };
