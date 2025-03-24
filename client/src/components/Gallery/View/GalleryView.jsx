@@ -152,14 +152,10 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                                             fetch={fetchMorePhotos}
                                             retries={5}
                                             onClick={({ photos, photo, index, event }) => openLightbox(index)}
-                                            onMouseEnter={() => setIsHovering(true)}
-                                            onMouseLeave={() => setIsHovering(false)}
                             >
                                 <MasonryPhotoAlbum
                                     photos={gallery}
                                     columns={adjustBoxSizing}
-                                    onMouseEnter={() => setIsHovering(true)}
-                                    onMouseLeave={() => setIsHovering(false)}
                                 />
                             </InfiniteScroll>
                         </>
