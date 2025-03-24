@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 /*import reportWebVitals from './reportWebVitals';*/
-//import 'react-toastify/dist/ReactToastify.css';
+import 'react-toastify/dist/ReactToastify.css';
 
 import { HelmetProvider, Helmet } from 'react-helmet-async';
 
@@ -33,15 +33,17 @@ import {
     SEO_SITE_URL,
     SEO_TITLE
 } from "./constants/seo.constants";
+import {FiltersExplanation} from "./screens/FiltersExplanation/FiltersExplanation";
 
 const router = createBrowserRouter(
     createRoutesFromElements(
         <Route path={"/"} element={<App />}>
             <Route index={true} path={"/"} element={<HomeScreen />} />
             <Route path={"/page/:page"} element={<HomeScreen />} />
-            <Route path={"/search/:keywords"} element={<HomeScreen />} />
+            <Route path={"/search"} element={<HomeScreen />} />
             <Route path={"/search/:keywords/page/:page"} element={<HomeScreen />} />
             <Route path={"/login"} element={<LoginScreen />} />
+            <Route path={"/site-filters-explanation"} element={<FiltersExplanation />} />
             <Route path={""} element={<PrivateRoute />}>
                 <Route path={"/favorites"} element={<Loader />} />
             </Route>

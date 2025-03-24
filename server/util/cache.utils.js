@@ -1,4 +1,4 @@
-const cachingIsEnabled = (process.env.NODE_ENV === 'production' || process.env.FORCE_CACHING);
+const cachingIsEnabled = (process.env.NODE_ENV === 'production' || process.env.FORCE_CACHING === "true");
 
 export const probeForCache = async (req) => {
     if(cachingIsEnabled) {
@@ -9,9 +9,9 @@ export const probeForCache = async (req) => {
     }
     return false;
 }
-export const cacheResults = async (req, dataToCache, expires = 120) => {
+export const cacheResults = async (req, dataToCache, expires = 1) => {
     if(cachingIsEnabled) {
-        await req.app.redisClient.set(req.originalUrl, JSON.stringify(dataToCache));
+        await req.app.redisClient.set(req.originalUrl, JSON.stringify(dataToCache), "EX", 120);
     }
     return req;
 }

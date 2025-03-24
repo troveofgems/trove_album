@@ -27,7 +27,7 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
             fetchTS: markTimestamp(),
             pagination: {}
         },
-        existentCache = await probeForCache(req);
+        existentCache = false; //await probeForCache(req);
 
     if(existentCache) return res
         .status(200)

@@ -74,7 +74,7 @@ export const PhotoManagementScreen = () => {
                     <th className={"text-start"}>Photo Taken On</th>
                     <th>Last Update</th>
                     <th>GPS</th>
-                    <th>Actions</th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody className={currentTableData?.length > 0 ? "" : "w-100 text-center"}>
