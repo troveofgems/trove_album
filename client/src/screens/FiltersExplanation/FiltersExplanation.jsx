@@ -4,9 +4,9 @@ import {Table, Container} from "react-bootstrap";
 export const FiltersExplanation = () => {
     return (
         <>
-            <h2 className={"mb-5 mt-3"}>Site Filters Explanation</h2>
+            <h2 className={"mb-5 mt-3 text-white"}>Site Filters Explanation</h2>
             <Container className={"mb-5"}>
-                <h3 className={"mb-3"}>Simple Filtering</h3>
+                <h3 className={"mb-3 text-white"}>Simple Filtering</h3>
                 <Table>
                     <thead>
                     <tr>
@@ -70,9 +70,9 @@ export const FiltersExplanation = () => {
                     </tbody>
                 </Table>
                 <hr/>
-                <h3 className={"mb-3 mt-5"}>Complex Filtering</h3>
-                <p>Complex filtering is available and follows the priority applied as listed in the table above.</p>
-                <p>The following table provides some examples of complex filtering and descriptions of their return values</p>
+                <h3 className={"mb-3 mt-5 text-white"}>Complex Filtering</h3>
+                <p className={"text-white"}>Complex filtering is available and follows the priority applied as listed in the table above.</p>
+                <p className={"text-white"}>The following table provides some examples of complex filtering and descriptions of their return values</p>
                 <Table>
                     <thead>
                     <tr>

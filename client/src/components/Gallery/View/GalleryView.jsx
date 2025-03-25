@@ -24,25 +24,25 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
     const
         { state: filterState } = useLocation(),
         { data: photoGallery, isLoading: isLoadingGallery, error: galleryError } = useFetchGalleryQuery(),
-        [showGallery, setShowGallery] = useState(false),
         [gallery, setGallery] = useState([]),
         [galleryTypeView, setGalleryTypeView] = useState(null),
         [filtersInUse, setFiltersInUse] = useState(false),
         [travelPhotoGroups, setTravelPhotoGroups] = useState(null);
 
     const processGalleryView = (categoryToShow, fullGallery, filters) => {
-        setShowGallery(false);
-        if(categoryToShow === "All Items") {
-            setGalleryTypeView(categoryToShow);
-            setFiltersInUse(false);
-            setGallery(fullGallery);
-        } else if (categoryToShow === "Travel") {
+        console.log("filters", filters);
+        let
+            gallery = fullGallery,
+            filteredGallery = [];
+
+        // Do The Initial Filter By Category View
+        if(categoryToShow === "All Items" && !filtersInUse) {
+            filteredGallery = gallery;
+        } else if (categoryToShow === "Travel" && !filtersInUse) {
             const photoGroups = new Map();
-            let travelPhotos = fullGallery.filter((photo) => photo.tags.indexOf(categoryToShow) > -1);
+            let travelPhotos = gallery.filter((photo) => photo.tags.indexOf(categoryToShow) > -1);
             travelPhotos.forEach((image) => {
                 const locationTime = `${image.tags[image.tags.length - 1]} ${image.tags[image.tags.length - 2]}`;
-
-                console.log("Location Time: ", locationTime);
 
                 // Add image to the appropriate group
                 if (!photoGroups.has(locationTime)) {
@@ -51,18 +51,13 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                 photoGroups.get(locationTime).push(image);
             });
             setTravelPhotoGroups(photoGroups);
-            setGalleryTypeView(categoryToShow);
-            setFiltersInUse(false);
-            setGallery(travelPhotos);
+            filteredGallery = travelPhotos;
         } else {
-            let filteredView = fullGallery.filter((photo) => photo.tags.indexOf(categoryToShow) > -1);
-            setGalleryTypeView(categoryToShow);
-            setGallery(filteredView);
+            filteredGallery = fullGallery.filter((photo) => photo.tags.indexOf(categoryToShow) > -1);
         }
 
-        setShowGallery(true);
-
-       /* if(!!filters && filters.length > 0) {
+        // Then Check for Provided Query Filters
+        if(!!filters && filters.length > 0) {
             const
                 lowercasedFilters = filters.toLowerCase(),
                 filterByExact = (
@@ -80,17 +75,28 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
             console.log("Lower ", lowercasedFilters);
             setFiltersInUse(true);
 
-            if(filterByExact) {
-                let
-                    filter = lowercasedFilters.replace(/'/g, "");
-                filter = filter.replace(/"/g, "");
+            let secondaryFilter = [];
 
-                console.log("Use the photo gallery returned from the server: ", photoGallery);
-                console.log("Filtering By: ", filter);
-                filteredCategoryView = filteredCategoryView.filter((photo) => photo.title.toLowerCase().includes(filter));
-                console.log("Filtered DS: ", filteredCategoryView);
+            if(filterByExact) {
+                let filterStr = lowercasedFilters.replace(/'/g, "");
+
+                filterStr = filterStr.replace(/"/g, "");
+
+                secondaryFilter = filteredGallery.filter((photo) => photo.title.toLowerCase().includes(filterStr));
+                filteredGallery = secondaryFilter;
             }
-        }*/
+
+            if(filterByExclusion) {
+                let filterStr = lowercasedFilters.replace(/-/g, "");
+
+                secondaryFilter = filteredGallery.filter((photo) => !photo.title.toLowerCase().includes(filterStr));
+                filteredGallery = secondaryFilter;
+            }
+        }
+
+        // Finally Set The Data
+        setGallery(filteredGallery);
+        setGalleryTypeView(categoryToShow);
     };
 
     const adjustBoxSizing = (containerWidth) => {
@@ -145,7 +151,7 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
 
     return (
         <>
-            {isLoadingGallery && (<Loader />)}
+            {isLoadingGallery && (<div className={"d-flex w-100 min-vh-100 justify-content-center"}><Loader /></div>)}
             {galleryError && (
                 <div>
                     {galleryError?.data?.message || galleryError?.error || UNKNOWN_ERROR}
@@ -159,7 +165,7 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                             {
                                 filtersInUse && (
                                     <>
-                                        <h4>Filters: {filterState?.query}</h4>
+                                        <h4 className={"text-white"}>Filters: {filterState?.query}</h4>
                                     </>
                                 )
                             }
@@ -168,7 +174,7 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                             <NoPhotosBlock />
                         )}
                         {
-                            galleryTypeView === "All Items" && (
+                            (galleryTypeView === "All Items" && !filtersInUse) && (
                                 <InfiniteScroll singleton
                                                 photos={gallery}
                                                 fetch={fetchMorePhotos}
@@ -180,7 +186,6 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                                         layout={"masonry"}
                                         render={{
                                             image: (props, {photo, width, height}) => {
-                                                console.log(props, photo, width, height);
                                                 return (<img
                                                     src={props.src}
                                                     alt={props.alt}
@@ -212,11 +217,27 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                                             <MasonryPhotoAlbum
                                                 photos={subsetPhotoList}
                                                 columns={adjustBoxSizing}
-                                                onClick={(evt) => openLightbox(evt.index)}
                                                 breakpoints={[220, 360, 480, 600, 900, 1200]}
                                                 sizes={{
                                                     size: "1168px",
                                                     sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
+                                                }}
+                                                render={{
+                                                    image: (props, {photo, width, height}) => {
+                                                        return (<img
+                                                            src={props.src}
+                                                            alt={props.alt}
+                                                            title={props.title}
+                                                            height={height}
+                                                            width={width}
+                                                            sizes={{
+                                                                size: "1168px",
+                                                                sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
+                                                            }}
+                                                            className={"link"}
+                                                            key={`masonry_tile_${photo.uniqueKey}`}
+                                                        />)
+                                                    },
                                                 }}
                                             />
                                         </div>
@@ -233,7 +254,6 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                                         onClick={(evt) => openLightbox(evt.index)}
                                         render={{
                                             image: (props, {photo, width, height}) => {
-                                                console.log(props, photo, width, height);
                                                 return (<img
                                                     src={props.src}
                                                     alt={props.alt}
@@ -245,6 +265,36 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                                                         sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
                                                     }}
                                                     className={"link"}
+                                                    key={`masonry_tile_${photo.uniqueKey}`}
+                                                />)
+                                            },
+                                        }}
+                                        breakpoints={[220, 360, 480, 600, 900, 1200]}
+                                    />
+                                </>
+                            )
+                        }
+                        {
+                            filtersInUse && (
+                                <>
+                                    <MasonryPhotoAlbum
+                                        photos={gallery}
+                                        columns={adjustBoxSizing}
+                                        onClick={(evt) => openLightbox(evt.index)}
+                                        render={{
+                                            image: (props, {photo, width, height}) => {
+                                                return (<img
+                                                    src={props.src}
+                                                    alt={props.alt}
+                                                    title={props.title}
+                                                    height={height}
+                                                    width={width}
+                                                    sizes={{
+                                                        size: "1168px",
+                                                        sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
+                                                    }}
+                                                    className={"link"}
+                                                    key={`masonry_tile_${photo.uniqueKey}`}
                                                 />)
                                             },
                                         }}

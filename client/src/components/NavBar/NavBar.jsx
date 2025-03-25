@@ -92,7 +92,7 @@ export const NavBar = ({ onViewChange, setIsHovering }) => {
                                     <>
                                         {userInfo?.data?.isAdmin ? (
                                             <Link to={"/admin/photo-management"} className={"dropdown-item"}>
-                                                Photo Management
+                                                Resource Management
                                             </Link>
                                         ) : (
                                             <Link to={"/favorites"} className={"dropdown-item"}>
