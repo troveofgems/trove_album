@@ -36,6 +36,11 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
             filteredGallery = [];
 
         // Do The Initial Filter By Category View
+        if(filters === "") {
+            console.log("Empty Filters String Detected? ", filters);
+            setFiltersInUse(false);
+            filters = null;
+        }
         if(categoryToShow === "All Items" && !filtersInUse) {
             filteredGallery = gallery;
         } else if (categoryToShow === "Travel" && !filtersInUse) {
@@ -58,6 +63,7 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
 
         // Then Check for Provided Query Filters
         if(!!filters && filters.length > 0) {
+            console.log("Now inside Filters", filters)
             const
                 lowercasedFilters = filters.toLowerCase(),
                 filterByExact = (
@@ -72,26 +78,63 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                 filterByNumberRange = lowercasedFilters.includes(".."),
                 filterByFileType = lowercasedFilters.includes("filetype:");
 
-            console.log("Lower ", lowercasedFilters);
             setFiltersInUse(true);
 
             let secondaryFilter = [];
 
             if(filterByExact) {
-                let filterStr = lowercasedFilters.replace(/'/g, "");
+                let exactFilterValues = extractExactQuotationMaterialFromFilterQuery(lowercasedFilters);
 
-                filterStr = filterStr.replace(/"/g, "");
-
-                secondaryFilter = filteredGallery.filter((photo) => photo.title.toLowerCase().includes(filterStr));
-                filteredGallery = secondaryFilter;
+                exactFilterValues.forEach((searchParam) => {
+                    let searchValue = searchParam.replace(/"/g, "");
+                    searchValue = searchValue.replace(/'/g, "");
+                    let subsetList = gallery.filter((photo) => photo.title.toLowerCase().includes(searchValue));
+                    secondaryFilter.push(...subsetList);
+                });
             }
 
             if(filterByExclusion) {
-                let filterStr = lowercasedFilters.replace(/-/g, "");
+                let exclusionFilterValues = extractExclusionDashMaterialFromFilterQuery(lowercasedFilters, lowercasedFilters);
 
-                secondaryFilter = filteredGallery.filter((photo) => !photo.title.toLowerCase().includes(filterStr));
-                filteredGallery = secondaryFilter;
+                console.log("Exclusion Filter: ", exclusionFilterValues);
+                exclusionFilterValues.forEach((searchParam) => {
+                    if(secondaryFilter.length > 0) {
+                        secondaryFilter = secondaryFilter.filter((photo) => !photo.title.toLowerCase().includes(searchParam));
+                    } else {
+                        secondaryFilter = gallery.filter((photo) => !photo.title.toLowerCase().includes(searchParam));
+                    }
+                });
             }
+
+            if(filterByFuzzy) {
+                let fuzzyFilterValues = extractFuzzyTildeMaterialFromFilterQuery(lowercasedFilters);
+
+                fuzzyFilterValues.forEach((searchParam) => {
+                    let subsetList = gallery.filter((photo) => photo.title.toLowerCase().includes(searchParam));
+                    secondaryFilter = [...secondaryFilter, ...subsetList];
+                });
+            }
+
+            if(filterByWebsiteOnly) {
+                let siteFilterValues = extractSiteMaterialFromFilterQuery(lowercasedFilters);
+                console.log("Site? ", siteFilterValues);
+            }
+
+            console.log("Secondary Filtered Website Only? ", secondaryFilter);
+
+            if(filterByAllSites) {
+
+            }
+
+            if(filterByNumberRange) {
+
+            }
+
+            if(filterByFileType) {
+
+            }
+
+            filteredGallery = secondaryFilter;
         }
 
         // Finally Set The Data
@@ -148,6 +191,27 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
     };
 
     const getTripName = (photoList) => photoList[0].tags[1];
+
+    const extractExactQuotationMaterialFromFilterQuery = (text) => {
+        const matches = text.match(/(["'])(.*?)\1/g);
+        console.log("Matches? ", matches);
+        matches.forEach(match => {
+            console.log("Match Found? ", match.slice(1, -1)); // "hello", "world"
+        });
+        return matches;
+    }
+
+    const extractExclusionDashMaterialFromFilterQuery = (pattern, text) => {
+        return pattern.split(' ').filter(p => p.startsWith('-')).map(p => p.slice(1));
+    }
+
+    const extractFuzzyTildeMaterialFromFilterQuery = (pattern, text) => {
+        return pattern.split(' ').filter(p => p.startsWith('~')).map(p => p.slice(1));
+    }
+
+    const extractSiteMaterialFromFilterQuery = (pattern, text) => {
+        return pattern.split(' ').filter(p => p.startsWith('site:')).map(p => p.slice(5));
+    }
 
     return (
         <>
@@ -208,7 +272,7 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                             )
                         }
                         {
-                            galleryTypeView === "Travel" && (
+                            (galleryTypeView === "Travel" && !filtersInUse) && (
                                 <>
                                     {[...travelPhotoGroups.entries()].map(([locationTime, subsetPhotoList], index) => (
                                         <div className={"mb-5 pb-5"}>
@@ -246,7 +310,7 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                             )
                         }
                         {
-                            (galleryTypeView !== "All Items" && galleryTypeView !== "Travel") && (
+                            (galleryTypeView !== "All Items" && galleryTypeView !== "Travel" && !filtersInUse) && (
                                 <>
                                     <MasonryPhotoAlbum
                                         photos={gallery}
