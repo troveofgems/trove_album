@@ -122,6 +122,27 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
             return null;
         };
 
+    const getTripLocation = (loc) => {
+        const splitBySpace = loc.split(" ");
+
+        let tripName = "";
+
+        if(splitBySpace.length === 4) {
+            tripName = `${splitBySpace[2]} ${splitBySpace[3]}`;
+        } else if (splitBySpace.length === 5) {
+            tripName = `${splitBySpace[2]} ${splitBySpace[3]} ${splitBySpace[4]}`;
+        } // Not sure if this will get larger...Need a better way to handle this.
+
+        return tripName;
+    };
+
+    const getTripDate = (loc) => {
+        const splitBySpace = loc.split(" ");
+        return `${splitBySpace[0]} ${splitBySpace[1]}`;
+    };
+
+    const getTripName = (photoList) => photoList[0].tags[1];
+
     return (
         <>
             {isLoadingGallery && (<Loader />)}
@@ -156,18 +177,26 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                                 >
                                     <MasonryPhotoAlbum
                                         photos={gallery}
+                                        layout={"masonry"}
                                         render={{
                                             image: (props, {photo, width, height}) => {
-                                                console.log(props);
-                                                return (<img src={photo.src} alt={photo.alt} height={height} width={width}
-                                                     className={"link"}/>)
+                                                console.log(props, photo, width, height);
+                                                return (<img
+                                                    src={props.src}
+                                                    alt={props.alt}
+                                                    title={props.title}
+                                                    height={height}
+                                                    width={width}
+                                                    sizes={{
+                                                        size: "1168px",
+                                                        sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
+                                                    }}
+                                                    className={"link"}
+                                                    key={`masonry_tile_${photo.uniqueKey}`}
+                                                />)
                                             },
                                         }}
                                         columns={adjustBoxSizing}
-                                        sizes={{
-                                            size: "1168px",
-                                            sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
-                                        }}
                                         breakpoints={[220, 360, 480, 600, 900, 1200]}
                                     />
                                 </InfiniteScroll>
@@ -177,8 +206,9 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                             galleryTypeView === "Travel" && (
                                 <>
                                     {[...travelPhotoGroups.entries()].map(([locationTime, subsetPhotoList], index) => (
-                                        <div className={"mb-5"}>
-                                            <h3 className={"text-decoration-underline text-start mt-4"}>{locationTime}</h3>
+                                        <div className={"mb-5 pb-5"}>
+                                            <h3 className={"text-white text-decoration-underline text-start mt-4"}>{getTripName(subsetPhotoList)}</h3>
+                                            <h5 className={"text-white text-start"}>{getTripDate(locationTime)} - {getTripLocation(locationTime)}</h5>
                                             <MasonryPhotoAlbum
                                                 photos={subsetPhotoList}
                                                 columns={adjustBoxSizing}
@@ -201,11 +231,24 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                                         photos={gallery}
                                         columns={adjustBoxSizing}
                                         onClick={(evt) => openLightbox(evt.index)}
-                                        breakpoints={[220, 360, 480, 600, 900, 1200]}
-                                        sizes={{
-                                            size: "1168px",
-                                            sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
+                                        render={{
+                                            image: (props, {photo, width, height}) => {
+                                                console.log(props, photo, width, height);
+                                                return (<img
+                                                    src={props.src}
+                                                    alt={props.alt}
+                                                    title={props.title}
+                                                    height={height}
+                                                    width={width}
+                                                    sizes={{
+                                                        size: "1168px",
+                                                        sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
+                                                    }}
+                                                    className={"link"}
+                                                />)
+                                            },
                                         }}
+                                        breakpoints={[220, 360, 480, 600, 900, 1200]}
                                     />
                                 </>
                             )
