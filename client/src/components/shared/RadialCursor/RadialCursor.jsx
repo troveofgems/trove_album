@@ -5,7 +5,7 @@ import "./RadialCursor.css";
 const CursorRadius = ({
                           size = 40,
                           borderWidth = 2,
-                          borderColor = '#050C35',
+                          borderColor = '#1129b4',
                           transitionSpeed = 0.05,
                           hoverSize = 25,
                           hoverColor = '#ffff00',

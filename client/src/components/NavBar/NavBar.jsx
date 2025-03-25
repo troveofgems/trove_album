@@ -41,7 +41,7 @@ export const NavBar = ({ onViewChange, setIsHovering }) => {
     };
 
     return (
-        <Navbar expand="lg" className="bg-body-tertiary w-100 mb-5">
+        <Navbar expand="lg" className="bg-body-tertiary w-100">
             <Container fluid>
                 <Navbar.Brand href="/" className="bg-white custom-brand">
                     <img src={`${LouPainting}`} alt={"Alt"} width={100} height={110} className={"custom-brand"}
@@ -58,7 +58,7 @@ export const NavBar = ({ onViewChange, setIsHovering }) => {
                         onMouseEnter={() => setIsHovering(true)}
                         onMouseLeave={() => setIsHovering(false)}
                     >
-                        <NavDropdown title="Change Gallery View" id="navbarScrollingDropdown">
+                        <NavDropdown title="Gallery Views" id="navbarScrollingDropdown">
                             <Link to={"/"} className={"innerLink dropdown-item"} onClick={() => onViewChange("All Items")}>
                                 Full Gallery
                             </Link>
