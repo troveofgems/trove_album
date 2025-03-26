@@ -114,7 +114,7 @@ export const NavBar = ({ onViewChange, setIsHovering }) => {
                             <Link to={"/site-filters-explanation"} className={"dropdown-item"}>
                                 About Site Filters
                             </Link>
-                            <Link to={"/api-docs/"} className={"dropdown-item"}>
+                            <Link to={"/api-docs"} className={"dropdown-item"}>
                                 Swagger UI - API Docs
                             </Link>
                         </NavDropdown>
