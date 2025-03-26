@@ -89,7 +89,7 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                 exactFilterValues.forEach((searchParam) => {
                     let searchValue = searchParam.replace(/"/g, "");
                     searchValue = searchValue.replace(/'/g, "");
-                    let subsetList = galleryFromServer.filter((photo) => photo.title.toLowerCase().includes(searchValue));
+                    let subsetList = galleryFromServer.filter((photo) => photo.title.toLowerCase().includes(searchValue.toLowerCase()));
                     secondaryFilter.push(...subsetList);
                 });
             }
