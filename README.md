@@ -1,1 +1,1 @@
-# trove_album
+# Trove of Gems Photo Album

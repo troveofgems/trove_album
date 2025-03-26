@@ -7,7 +7,7 @@ export const FiltersExplanation = () => {
             <h2 className={"mb-5 mt-3 text-white"}>Site Filters Explanation</h2>
             <Container className={"mb-5"}>
                 <h3 className={"mb-3 text-white"}>Simple Filtering</h3>
-                <Table>
+                <Table responsive>
                     <thead>
                     <tr>
                         <th>Priority</th>
