@@ -7,6 +7,7 @@ export const FiltersExplanation = () => {
             <h2 className={"mb-5 mt-3 text-white"}>Site Filters Explanation</h2>
             <Container className={"mb-5"}>
                 <h3 className={"mb-3 text-white"}>Simple Filtering</h3>
+                <p className={"mb-3 text-danger"}>* Not Currently Implemented</p>
                 <Table responsive>
                     <thead>
                     <tr>
@@ -46,12 +47,12 @@ export const FiltersExplanation = () => {
                             <td>site:lou</td>
                             <td className={"text-start"}>Website Only Search on Photo Title</td>
                         </tr>
-                        <tr>
-                            <td>4</td>
-                            <td className={"text-start"}>Vertical Bar</td>
-                            <td>|</td>
-                            <td>lou | heeler | tennie</td>
-                            <td className={"text-start"}>Searches All ToG Sites on Values in Photo Title or Description</td>
+                        <tr className={"text-danger"}>
+                            <td className={"text-danger"}>4*</td>
+                            <td className={"text-start text-danger"}>Vertical Bar</td>
+                            <td className={"text-danger"}>|</td>
+                            <td className={"text-danger"}>lou | heeler | tennie</td>
+                            <td className={"text-start text-danger"}>Searches All ToG Sites on Values in Photo Title or Description</td>
                         </tr>
                         <tr>
                             <td>5</td>
@@ -73,7 +74,7 @@ export const FiltersExplanation = () => {
                 <h3 className={"mb-3 mt-5 text-white"}>Complex Filtering</h3>
                 <p className={"text-white"}>Complex filtering is available and follows the priority applied as listed in the table above.</p>
                 <p className={"text-white"}>The following table provides some examples of complex filtering and descriptions of their return values</p>
-                <Table>
+                <Table responsive>
                     <thead>
                     <tr>
                         <th className={"text-start col-lg-2"}>Complex Example</th>
@@ -94,8 +95,8 @@ export const FiltersExplanation = () => {
                     </tr>
                     <tr>
                         <td className={"text-start"}>3</td>
-                        <td className={"text-start"}>site:lou | "blue heeler" filetype:jpg</td>
-                        <td className={"text-start"}>Searches the photo album website for "Lou" as well as the other satellite Trove of Gems Sites for the term "Blue Heeler" and returns a list of resources where the filetype is a jpg file.</td>
+                        <td className={"text-start"}>site:lou 2022..2025 filetype:jpg</td>
+                        <td className={"text-start"}>Searches the photo album website for "Lou" and returns a list of resources where the filetype is a jpg file and between 2022 and 2025.</td>
                     </tr>
                     </tbody>
                 </Table>

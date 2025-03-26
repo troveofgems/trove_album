@@ -1,5 +1,15 @@
-.custom-brand {
-    border-radius: 50%;
+.customBrand {
+    text-align: start;
+}
+
+.brandImgContainer {
+    width: 150px!important;
+    height: 150px!important;
+}
+
+.louPortrait {
+    width: 100%;
+    height: 99%;
 }
 
 .dropdown-toggle {

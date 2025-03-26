@@ -43,11 +43,13 @@ export const NavBar = ({ onViewChange, setIsHovering }) => {
     return (
         <Navbar expand="lg" className="bg-body-tertiary w-100">
             <Container fluid>
-                <Navbar.Brand href="/" className="bg-white custom-brand">
-                    <img src={`${LouPainting}`} alt={"Alt"} width={100} height={110} className={"custom-brand"}
-                         onMouseEnter={() => setIsHovering(true)}
-                         onMouseLeave={() => setIsHovering(false)}
-                    />
+                <Navbar.Brand href="/" className="custom-brand">
+                    <div className={"brandImgContainer"}>
+                        <img src={`${LouPainting}`} alt={"Louie Banner Button"} className={"rounded-5 louPortrait"}
+                             onMouseEnter={() => setIsHovering(true)}
+                             onMouseLeave={() => setIsHovering(false)}
+                        />
+                    </div>
                 </Navbar.Brand>
                 <Navbar.Toggle aria-controls="navbarScroll" />
                 <Navbar.Collapse id="navbarScroll">
