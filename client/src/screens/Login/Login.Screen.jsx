@@ -51,7 +51,7 @@ export const LoginScreen = () => {
         <FormContainer>
             <Form onSubmit={submitHandler} className={"w-50 m-auto"}>
                 <Form.Group controlid={"email"} className={"my-3"}>
-                    <Form.Label column={true}>Account Id</Form.Label>
+                    <Form.Label column={true} className={"text-white"}>Account Id</Form.Label>
                     <Form.Control
                         type="email"
                         value={email}
@@ -61,7 +61,7 @@ export const LoginScreen = () => {
                     </Form.Control>
                 </Form.Group>
                 <Form.Group controlid={"password"} className={"my-3"}>
-                    <Form.Label column={true}>Password</Form.Label>
+                    <Form.Label column={true} className={"text-white"}>Password</Form.Label>
                     <Form.Control
                         type="password"
                         value={password}

@@ -114,9 +114,9 @@ export const NavBar = ({ onViewChange, setIsHovering }) => {
                             <Link to={"/site-filters-explanation"} className={"dropdown-item"}>
                                 About Site Filters
                             </Link>
-                            <Link to={"/api-docs"} className={"dropdown-item"}>
+                            <NavDropdown.Item href={process.env.NODE_ENV === "development" ? "http://localhost:5000/api-docs" : "https://www.photo-album.thetroveofgems.tech/api-docs/"}>
                                 Swagger UI - API Docs
-                            </Link>
+                            </NavDropdown.Item>
                         </NavDropdown>
                     </Nav>
                     <Form className="d-flex" onSubmit={(evt) => processKeywordSearch(evt, keywords)}>

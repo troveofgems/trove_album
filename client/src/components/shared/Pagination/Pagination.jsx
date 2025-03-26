@@ -40,7 +40,7 @@ const Pagination = props => {
                 key={`item-prev-key-0`}
                 className={classnames('pagination-item', {
                     disabled: currentPage === 1
-                }, "text-white")}
+                }, "bg-white")}
                 onClick={onPrevious}
             >
                 <div className="arrow left" />
@@ -66,7 +66,7 @@ const Pagination = props => {
                 key={`item-next-key-0`}
                 className={classnames('pagination-item', {
                     disabled: (currentPage === lastPage)
-                }, "text-white")}
+                }, "bg-white")}
                 onClick={onNext}
             >
                 <div className="arrow right" />

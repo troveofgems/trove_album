@@ -126,12 +126,12 @@ export const AddPhoto = () => {
 
     return (
         <FormContainer>
-            <h2>Add A Photo</h2>
+            <h2 className={"mt-5 text-white"}>Add A Photo</h2>
             <Form onSubmit={handleSendPhotoToServer} className={"mb-5"}>
                 <Row>
                     <Col xs={12} md={4}>
                         <Form.Group controlid={"imageUpload"}>
-                            <Form.Label column={true}>Upload Image</Form.Label>
+                            <Form.Label column={true} className={"text-white"}>Upload Image</Form.Label>
                             <Form.Control
                                 type="file"
                                 accept="image/*"
@@ -141,7 +141,7 @@ export const AddPhoto = () => {
                             </Form.Control>
                         </Form.Group>
                         <Form.Group controlid={"title"} className={"mb-3 mt-3"}>
-                            <Form.Label column={true}>Title</Form.Label>
+                            <Form.Label column={true} className={"text-white"}>Title</Form.Label>
                             <Form.Control
                                 type="text"
                                 placeholder={"Photo Title"}
@@ -150,7 +150,7 @@ export const AddPhoto = () => {
                             </Form.Control>
                         </Form.Group>
                         <Form.Group controlid={"description"} className={"mb-5 mt-3"}>
-                            <Form.Label column={true}>Custom Download Name</Form.Label>
+                            <Form.Label column={true} className={"text-white"}>Custom Download Name</Form.Label>
                             <Form.Control
                                 type="text"
                                 placeholder={"Custom Download Name"}
@@ -197,67 +197,67 @@ export const AddPhoto = () => {
                                 <div className={"mt-3 mb-3"}>
                                     <Row className={"text-start mt-4 mb-3"}>
                                         <Col>
-                                            <h6 className={"text-decoration-underline"}>Device</h6>
-                                            <p className={"pb-0 mb-0"}>{imgEXIFData.make}</p>
-                                            <p className={"pb-0 mb-0"}>{imgEXIFData.model}</p>
+                                            <h6 className={"text-decoration-underline text-white"}>Device</h6>
+                                            <p className={"pb-0 mb-0 text-white"}>{imgEXIFData.make}</p>
+                                            <p className={"pb-0 mb-0 text-white"}>{imgEXIFData.model}</p>
                                         </Col>
                                         <Col>
-                                            <h6 className={"text-decoration-underline"}>GPS Data</h6>
+                                            <h6 className={"text-decoration-underline text-white"}>GPS Data</h6>
                                             <div className={"d-flex w-100"}>
                                                 <div className={"w-50"}>
-                                                    <p className={"pb-0 mb-0 text-start"}>Latitude:</p>
+                                                    <p className={"pb-0 mb-0 text-start text-white"}>Latitude:</p>
                                                 </div>
                                                 <div className={"w-50 text-end"}>
-                                                    <span>{imgEXIFData.gpsLatitude}</span>
+                                                    <span className={"text-white"}>{imgEXIFData.gpsLatitude}</span>
                                                 </div>
                                             </div>
                                             <div className={"d-flex w-100"}>
                                                 <div className={"w-50"}>
-                                                    <p className={"pb-0 mb-0 text-start"}>Longitude:</p>
+                                                    <p className={"pb-0 mb-0 text-start text-white"}>Longitude:</p>
                                                 </div>
                                                 <div className={"w-50 text-end"}>
-                                                    <span>{imgEXIFData.gpsLongitude}</span>
+                                                    <span className={"text-white"}>{imgEXIFData.gpsLongitude}</span>
                                                 </div>
                                             </div>
                                             <div className={"d-flex w-100"}>
                                                 <div className={"w-50"}>
-                                                    <p className={"pb-0 mb-0 text-start"}>Altitude:</p>
+                                                    <p className={"pb-0 mb-0 text-start text-white"}>Altitude:</p>
                                                 </div>
                                                 <div className={"w-50 text-end"}>
-                                                    <span>{imgEXIFData.gpsAltitude}</span>
+                                                    <span className={"text-white"}>{imgEXIFData.gpsAltitude}</span>
                                                 </div>
                                             </div>
                                         </Col>
                                     </Row>
-                                    <Row className={"text-start"}>
+                                    <Row className={"text-start text-white"}>
                                         <Col>
-                                            <h6 className={"text-decoration-underline"}>Image Taken On</h6>
+                                            <h6 className={"text-decoration-underline  text-white"}>Image Taken On</h6>
                                             <p>{imgEXIFData.dateTimeOriginal}</p>
                                         </Col>
                                         <Col>
-                                            <h6 className={"text-decoration-underline"}>Image Info</h6>
+                                            <h6 className={"text-decoration-underline text-white"}>Image Info</h6>
                                             <div className={"d-flex w-100"}>
                                                 <div className={"w-50"}>
-                                                    <p className={"pb-0 mb-0 text-start"}>Nat. Height:</p>
+                                                    <p className={"pb-0 mb-0 text-start text-white"}>Nat. Height:</p>
                                                 </div>
                                                 <div className={"w-50 text-end"}>
-                                                    <span>{dimensions.height}px</span>
+                                                    <span className={"text-white"}>{dimensions.height}px</span>
                                                 </div>
                                             </div>
                                             <div className={"d-flex w-100"}>
                                                 <div className={"w-50"}>
-                                                    <p className={"pb-0 mb-0 text-start"}>Nat. Width:</p>
+                                                    <p className={"pb-0 mb-0 text-start text-white"}>Nat. Width:</p>
                                                 </div>
                                                 <div className={"w-50 text-end"}>
-                                                    <span>{dimensions.width}px</span>
+                                                    <span className={"text-white"}>{dimensions.width}px</span>
                                                 </div>
                                             </div>
                                             <div className={"d-flex w-100"}>
                                                 <div className={"w-50"}>
-                                                    <p className={"pb-0 mb-0 text-start"}>File Type:</p>
+                                                    <p className={"pb-0 mb-0 text-start text-white"}>File Type:</p>
                                                 </div>
                                                 <div className={"w-50 text-end"}>
-                                                    <span>{imgEXIFData.fileType}</span>
+                                                    <span className={"text-white"}>{imgEXIFData.fileType}</span>
                                                 </div>
                                             </div>
                                             <div className={"d-flex w-100"}>

@@ -45,7 +45,7 @@ export const TagField = ({ tags, addTag, removeTag, maxTags }) => {
                 {tags.map((tag, index) => (
                     <span
                         key={`${index}-${tag}`}
-                        className="inline-flex items-start justify-start px-3 py-2 rounded-[32px] text-sm shadow-sm font-medium bg-blue-100 text-blue-800"
+                        className="inline-flex items-start justify-start px-3 py-2 rounded-[32px] text-sm shadow-sm font-medium bg-white text-blue-800"
                     >
                         {tag}
                         <button
