@@ -197,6 +197,12 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
             setLightboxSpotlightIndex(index);
         };
 
+    const overrideLightboxForTravelPhotos = (evt) => {
+        const index1 = gallery.findIndex(photo => photo.src === evt.target.src);
+        setLightboxSpotlightIndex(index1);
+        openLightbox(index1);
+    }
+
     const // Infinite & Masonry Photo Album Controls
         fetchMorePhotos = async () => {
             console.log("Fetch More Photos For Infinite Scroll");
@@ -339,6 +345,7 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                                                                 sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
                                                             }}
                                                             className={"link"}
+                                                            onClick={evt => overrideLightboxForTravelPhotos(evt)}
                                                             key={`masonry_tile_${photo.uniqueKey}`}
                                                         />)
                                                     },
