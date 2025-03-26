@@ -60,7 +60,7 @@ export const PhotoManagementScreen = () => {
 
     return (
         <>
-            <div className={"d-flex justify-content-end mb-3"}>
+            <div className={"d-flex justify-content-end mt-5 mb-3"}>
                 <Link className={"btn btn-primary"} to={"/admin/photo-management/addPhoto"}>Add Photo To Gallery</Link>
             </div>
             <Table variant={"responsive"} striped={true} hover={true} className={"mt-5 mb-5"}>
@@ -129,7 +129,7 @@ export const PhotoManagementScreen = () => {
             {
                 (!!photoGallery && photoGallery?.data?.fullGallery.length > 0) && (
                     <>
-                        <div className={"d-flex justify-content-center mt-3"}>
+                        <div className={"d-flex justify-content-center mt-3 text-white"}>
                             <Pagination
                                 className={"pagination-bar"}
                                 currentPage={currentPage}
@@ -139,8 +139,8 @@ export const PhotoManagementScreen = () => {
                             />
                         </div>
                         <div className={"d-flex row text-end mb-5"}>
-                            <small>Items Per Page</small>
-                            <div>
+                            <small className={"text-white"}>Items Per Page</small>
+                            <div className={"mb-5"}>
                                 {
                                     itemsPerPageCommands.map(command => (
                                         <button type={"button"} onClick={() => changeDefaultPageSize(command)}

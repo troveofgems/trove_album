@@ -34,20 +34,20 @@ const Pagination = props => {
     let lastPage = paginationRange[paginationRange.length - 1];
     return (
         <ul
-            className={classnames('pagination-container', { [className]: className })}
+            className={classnames('pagination-container', { [className]: className }, "text-white")}
         >
             <li
                 key={`item-prev-key-0`}
                 className={classnames('pagination-item', {
                     disabled: currentPage === 1
-                })}
+                }, "text-white")}
                 onClick={onPrevious}
             >
                 <div className="arrow left" />
             </li>
             {paginationRange.map((pageNumber, i) => {
                 if (pageNumber === ELLIPSES) {
-                    return <li key={`ellipses-key-${i}`} className="pagination-item ellipsis">&#8230;</li>;
+                    return <li key={`ellipses-key-${i}`} className="pagination-item ellipsis text-white">&#8230;</li>;
                 }
 
                 return (
@@ -55,7 +55,7 @@ const Pagination = props => {
                         key={`item-key-${i}`}
                         className={classnames('pagination-item', {
                             selected: (pageNumber === currentPage)
-                        })}
+                        }, "text-white")}
                         onClick={() => onPageChange(pageNumber)}
                     >
                         {pageNumber}
@@ -66,7 +66,7 @@ const Pagination = props => {
                 key={`item-next-key-0`}
                 className={classnames('pagination-item', {
                     disabled: (currentPage === lastPage)
-                })}
+                }, "text-white")}
                 onClick={onNext}
             >
                 <div className="arrow right" />

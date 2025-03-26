@@ -16,54 +16,59 @@ import { UNKNOWN_ERROR } from "../../../constants/frontend.constants";
 import { useFetchGalleryQuery } from "../../../redux/slices/gallery.api.slice";
 import {Loader} from "../../shared/Loader/Loader";
 import {NoPhotosBlock} from "./NoPhotos/NoPhotos";
-import {useLocation, useParams} from "react-router-dom";
+import {useLocation} from "react-router-dom";
 
 import "./GalleryView.css";
 
-export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) => {
+export const GalleryView = ({ currentView: categoryRequested }) => {
     const
         { state: filterState } = useLocation(),
         { data: photoGallery, isLoading: isLoadingGallery, error: galleryError } = useFetchGalleryQuery(),
+        [galleryFromServer, setGalleryFromServer] = useState(null),
         [gallery, setGallery] = useState([]),
         [galleryTypeView, setGalleryTypeView] = useState(null),
         [filtersInUse, setFiltersInUse] = useState(false),
         [travelPhotoGroups, setTravelPhotoGroups] = useState(null);
 
-    const processGalleryView = (categoryToShow, fullGallery, filters) => {
-        console.log("filters", filters);
+    const processGalleryView = (categoryToShow, filters) => {
         let
-            gallery = fullGallery,
+            filtersAreEmpty = filters === undefined || filters === null || filters === "",
             filteredGallery = [];
 
-        // Do The Initial Filter By Category View
-        if(filters === "") {
-            console.log("Empty Filters String Detected? ", filters);
+        if(filtersAreEmpty) {
             setFiltersInUse(false);
-            filters = null;
-        }
-        if(categoryToShow === "All Items" && !filtersInUse) {
-            filteredGallery = gallery;
-        } else if (categoryToShow === "Travel" && !filtersInUse) {
-            const photoGroups = new Map();
-            let travelPhotos = gallery.filter((photo) => photo.tags.indexOf(categoryToShow) > -1);
-            travelPhotos.forEach((image) => {
-                const locationTime = `${image.tags[image.tags.length - 1]} ${image.tags[image.tags.length - 2]}`;
+            let
+                processAllItems = categoryToShow === "All Items",
+                processTravel = categoryToShow === "Travel",
+                processOtherCategories = !processAllItems && !processTravel;
 
-                // Add image to the appropriate group
-                if (!photoGroups.has(locationTime)) {
-                    photoGroups.set(locationTime, []);
-                }
-                photoGroups.get(locationTime).push(image);
-            });
-            setTravelPhotoGroups(photoGroups);
-            filteredGallery = travelPhotos;
+            if(processAllItems) {
+                filteredGallery = galleryFromServer;
+            }
+
+            if(processTravel) {
+                const photoGroups = new Map();
+                let travelPhotos = galleryFromServer.filter((photo) => photo.tags.indexOf(categoryToShow) > -1);
+                travelPhotos.forEach((image) => {
+                    const locationTime = `${image.tags[image.tags.length - 1]} ${image.tags[image.tags.length - 2]}`;
+
+                    // Add image to the appropriate group
+                    if (!photoGroups.has(locationTime)) {
+                        photoGroups.set(locationTime, []);
+                    }
+
+                    photoGroups.get(locationTime).push(image);
+                });
+                setTravelPhotoGroups(photoGroups);
+                filteredGallery = travelPhotos;
+            }
+
+            if(processOtherCategories) {
+                filteredGallery = galleryFromServer.filter((photo) => photo.tags.indexOf(categoryToShow) > -1);
+            }
         } else {
-            filteredGallery = fullGallery.filter((photo) => photo.tags.indexOf(categoryToShow) > -1);
-        }
+            let secondaryFilter = [];
 
-        // Then Check for Provided Query Filters
-        if(!!filters && filters.length > 0) {
-            console.log("Now inside Filters", filters)
             const
                 lowercasedFilters = filters.toLowerCase(),
                 filterByExact = (
@@ -78,62 +83,84 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                 filterByNumberRange = lowercasedFilters.includes(".."),
                 filterByFileType = lowercasedFilters.includes("filetype:");
 
-            setFiltersInUse(true);
-
-            let secondaryFilter = [];
-
-            if(filterByExact) {
+            if(filterByExact) { // Priority 0
                 let exactFilterValues = extractExactQuotationMaterialFromFilterQuery(lowercasedFilters);
 
                 exactFilterValues.forEach((searchParam) => {
                     let searchValue = searchParam.replace(/"/g, "");
                     searchValue = searchValue.replace(/'/g, "");
-                    let subsetList = gallery.filter((photo) => photo.title.toLowerCase().includes(searchValue));
+                    let subsetList = galleryFromServer.filter((photo) => photo.title.toLowerCase().includes(searchValue));
                     secondaryFilter.push(...subsetList);
                 });
             }
 
-            if(filterByExclusion) {
-                let exclusionFilterValues = extractExclusionDashMaterialFromFilterQuery(lowercasedFilters, lowercasedFilters);
+            if(filterByExclusion) { // Priority 1
+                let exclusionFilterValues = extractMaterialFromFilterQuery(lowercasedFilters, '-',  1);
 
-                console.log("Exclusion Filter: ", exclusionFilterValues);
                 exclusionFilterValues.forEach((searchParam) => {
                     if(secondaryFilter.length > 0) {
                         secondaryFilter = secondaryFilter.filter((photo) => !photo.title.toLowerCase().includes(searchParam));
                     } else {
-                        secondaryFilter = gallery.filter((photo) => !photo.title.toLowerCase().includes(searchParam));
+                        secondaryFilter = galleryFromServer.filter((photo) => !photo.title.toLowerCase().includes(searchParam));
                     }
                 });
             }
 
             if(filterByFuzzy) {
-                let fuzzyFilterValues = extractFuzzyTildeMaterialFromFilterQuery(lowercasedFilters);
+                let fuzzyFilterValues = extractMaterialFromFilterQuery(lowercasedFilters, "~", 1);
 
                 fuzzyFilterValues.forEach((searchParam) => {
-                    let subsetList = gallery.filter((photo) => photo.title.toLowerCase().includes(searchParam));
-                    secondaryFilter = [...secondaryFilter, ...subsetList];
+                    let
+                        subsetList_PTitle = galleryFromServer.filter((photo) => photo.title.toLowerCase().includes(searchParam)),
+                        subsetList_PDesc = galleryFromServer.filter((photo) => photo.description.toLowerCase().includes(searchParam));
+
+                    secondaryFilter = [...new Set([...secondaryFilter, ...subsetList_PTitle, ...subsetList_PDesc].map(JSON.stringify))].map(JSON.parse);
                 });
             }
 
             if(filterByWebsiteOnly) {
-                let siteFilterValues = extractSiteMaterialFromFilterQuery(lowercasedFilters);
-                console.log("Site? ", siteFilterValues);
+                let siteFilterValues = extractMaterialFromFilterQuery(lowercasedFilters, "site:", 5);
+
+                siteFilterValues.forEach((searchParam) => {
+                    let subsetList = galleryFromServer.filter((photo) => photo.title.toLowerCase().includes(searchParam));
+                    secondaryFilter = [...new Set([...secondaryFilter, ...subsetList].map(JSON.stringify))].map(JSON.parse);
+                });
             }
 
-            console.log("Secondary Filtered Website Only? ", secondaryFilter);
-
             if(filterByAllSites) {
-
+                console.log("Not Implemented: Filter By All Sites");
             }
 
             if(filterByNumberRange) {
+                let dateRangeFilter = extractDateRangesFromFilterQuery(lowercasedFilters);
+                dateRangeFilter.beforeDates.forEach((beforeDate, i) => {
+                    if(secondaryFilter.length > 0) {
+                        secondaryFilter = secondaryFilter.filter((photo) => {
+                            let photoYear = photo.photoTakenOn.split(",")[0].split("/")[2];
+                            return !!photoYear && (photoYear >= beforeDate && photoYear <= dateRangeFilter.afterDates[i]);
+                        });
+                    } else {
+                        secondaryFilter = galleryFromServer.filter((photo) => {
+                            let photoYear = photo.photoTakenOn.split(",")[0].split("/")[2];
+                            return !!photoYear && (photoYear >= beforeDate && photoYear <= dateRangeFilter.afterDates[i]);
+                        });
+                    }
+                });
 
             }
 
             if(filterByFileType) {
-
+                let fileTypeFilterValues = extractMaterialFromFilterQuery(lowercasedFilters, "filetype:", 9);
+                fileTypeFilterValues.forEach((searchParam) => {
+                   if(secondaryFilter.length > 0) {
+                       secondaryFilter = secondaryFilter.filter((photo) => photo.src.includes(searchParam));
+                   } else {
+                       secondaryFilter = galleryFromServer.filter((photo) => photo.src.includes(searchParam));
+                   }
+                });
             }
 
+            setFiltersInUse(true);
             filteredGallery = secondaryFilter;
         }
 
@@ -151,10 +178,15 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
 
     useEffect(() => {
         if(!isLoadingGallery && !!photoGallery) {
-            setGallery(photoGallery.data.fullGallery);
-            processGalleryView(categoryRequested, photoGallery.data.fullGallery, filterState?.query);
+            if(galleryFromServer === null) {
+                setGalleryFromServer(photoGallery.data.fullGallery);
+            } else {
+                processGalleryView(categoryRequested, filterState?.query);
+            }
+        } else {
+            console.log("Loading Gallery From Server...", new Date());
         }
-    }, [categoryRequested, photoGallery, filterState, isLoadingGallery]);
+    }, [categoryRequested, isLoadingGallery, galleryFromServer, filterState]);
 
     const // Lightbox Controls
         photoCaptionsRefForLightbox = React.useRef(null),
@@ -184,33 +216,42 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
 
         return tripName;
     };
-
     const getTripDate = (loc) => {
         const splitBySpace = loc.split(" ");
         return `${splitBySpace[0]} ${splitBySpace[1]}`;
     };
-
     const getTripName = (photoList) => photoList[0].tags[1];
 
-    const extractExactQuotationMaterialFromFilterQuery = (text) => {
-        const matches = text.match(/(["'])(.*?)\1/g);
-        console.log("Matches? ", matches);
-        matches.forEach(match => {
-            console.log("Match Found? ", match.slice(1, -1)); // "hello", "world"
+    const extractExactQuotationMaterialFromFilterQuery = (text) => text.match(/(["'])(.*?)\1/g);
+    const extractMaterialFromFilterQuery = (filterStr, pattern, slicePosition) => filterStr.split(' ').filter(p => p.startsWith(pattern)).map(p => p.slice(slicePosition));
+    const extractDateRangesFromFilterQuery = (filterStr) => {
+        // Find all patterns matching XXXX..XXXX where X is a digit
+        const dateRanges = filterStr.match(/\d+..\d+/g);
+
+        // Return empty object if no date ranges found
+        if (!dateRanges) {
+            return {
+                beforeDates: [],
+                afterDates: []
+            };
+        }
+
+        // Process each date range
+        const result = {
+            beforeDates: [],
+            afterDates: []
+        };
+
+        dateRanges.forEach(range => {
+            // Split each range into start and end dates
+            const [before, after] = range.split('..');
+
+            // Convert strings to integers and store
+            result.beforeDates.push(parseInt(before));
+            result.afterDates.push(parseInt(after));
         });
-        return matches;
-    }
 
-    const extractExclusionDashMaterialFromFilterQuery = (pattern, text) => {
-        return pattern.split(' ').filter(p => p.startsWith('-')).map(p => p.slice(1));
-    }
-
-    const extractFuzzyTildeMaterialFromFilterQuery = (pattern, text) => {
-        return pattern.split(' ').filter(p => p.startsWith('~')).map(p => p.slice(1));
-    }
-
-    const extractSiteMaterialFromFilterQuery = (pattern, text) => {
-        return pattern.split(' ').filter(p => p.startsWith('site:')).map(p => p.slice(5));
+        return result;
     }
 
     return (
@@ -247,15 +288,14 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                                 >
                                     <MasonryPhotoAlbum
                                         photos={gallery}
-                                        layout={"masonry"}
                                         render={{
-                                            image: (props, {photo, width, height}) => {
+                                            image: (props, { photo }) => {
                                                 return (<img
                                                     src={props.src}
                                                     alt={props.alt}
                                                     title={props.title}
-                                                    height={height}
-                                                    width={width}
+                                                    height={"100%"}
+                                                    width={"100%"}
                                                     sizes={{
                                                         size: "1168px",
                                                         sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
@@ -275,7 +315,7 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                             (galleryTypeView === "Travel" && !filtersInUse) && (
                                 <>
                                     {[...travelPhotoGroups.entries()].map(([locationTime, subsetPhotoList], index) => (
-                                        <div className={"mb-5 pb-5"}>
+                                        <div className={"mb-5 pb-5"} key={`${index}_travel`}>
                                             <h3 className={"text-white text-decoration-underline text-start mt-4"}>{getTripName(subsetPhotoList)}</h3>
                                             <h5 className={"text-white text-start"}>{getTripDate(locationTime)} - {getTripLocation(locationTime)}</h5>
                                             <MasonryPhotoAlbum
@@ -287,13 +327,13 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                                                     sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
                                                 }}
                                                 render={{
-                                                    image: (props, {photo, width, height}) => {
+                                                    image: (props, { photo }) => {
                                                         return (<img
                                                             src={props.src}
                                                             alt={props.alt}
                                                             title={props.title}
-                                                            height={height}
-                                                            width={width}
+                                                            height={"100%"}
+                                                            width={"100%"}
                                                             sizes={{
                                                                 size: "1168px",
                                                                 sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
@@ -310,7 +350,7 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                             )
                         }
                         {
-                            (galleryTypeView !== "All Items" && galleryTypeView !== "Travel" && !filtersInUse) && (
+                            (galleryTypeView !== "All Items" && galleryTypeView !== "Travel") && (
                                 <>
                                     <MasonryPhotoAlbum
                                         photos={gallery}
@@ -322,8 +362,8 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                                                     src={props.src}
                                                     alt={props.alt}
                                                     title={props.title}
-                                                    height={height}
-                                                    width={width}
+                                                    height={"100%"}
+                                                    width={"100%"}
                                                     sizes={{
                                                         size: "1168px",
                                                         sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
@@ -351,8 +391,8 @@ export const GalleryView = ({ currentView: categoryRequested, setIsHovering }) =
                                                     src={props.src}
                                                     alt={props.alt}
                                                     title={props.title}
-                                                    height={height}
-                                                    width={width}
+                                                    height={"100%"}
+                                                    width={"100%"}
                                                     sizes={{
                                                         size: "1168px",
                                                         sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
