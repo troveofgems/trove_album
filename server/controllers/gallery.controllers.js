@@ -12,7 +12,7 @@ import {processBenchmarks, trackAPIReceiveTime} from "../util/api.benchmarker.ut
 import {processResultsForAllPromises, waitForPromises} from "../util/promise.resolver.utils.js";
 import {formatPhotoForFrontEndConsumption, setCloudinaryFolderPath,} from "../util/photo.utils.js";
 import {markTimestamp} from "../util/time.utils.js";
-import {cacheResults, probeForCache} from "../util/cache.utils.js";
+import {cacheResults, deleteCache, probeForCache} from "../util/cache.utils.js";
 import {
     DELETE_DEFAULT_ERROR_MESSAGE, DELETE_DEFAULT_MIXED_MESSAGE,
     DELETE_DEFAULT_SUCCESS_MESSAGE
@@ -20,14 +20,32 @@ import {
 
 // @access Public
 export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
+    const totalResources = await PhotoModel.countDocuments();
+
     let
         gallery = {
-            fullGallery: [],
-            photoCount: 0,
+            fullGallery: [], // Deprecate This Usage In Favor of photos nest
+            photos: {
+                data: [],
+                pullCount: 0
+            },
+            photoCount: totalResources,
             fetchTS: markTimestamp(),
-            pagination: {}
+            pagination: {
+                currentRound: Number(req.query.currentRound) || 1,
+                skip: Number(req.query.skip) || 0,
+                totalRounds: (Number(req.query.totalRounds) || (Math.ceil(totalResources / (Number(req.query.limit) || 10)))),
+                limit: Number(req.query.limit) || 10
+            }
         },
         existentCache = false; //await probeForCache(req);
+
+    if(gallery.pagination.currentRound > gallery.pagination.totalRounds) {
+        return res.status(200).json({
+            data: null,
+            message: "No More Photos!"
+        });
+    }
 
     if(existentCache) return res
         .status(200)
@@ -37,15 +55,20 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
         excludePhotoKeys = "-srcSet -cloudinary._id -download._id -captions._id -device._id -dimensions._id -gps._id",
         preprocessedPhotoList = await PhotoModel
             .find({}, excludePhotoKeys, null)
+            .skip(gallery.pagination.skip)
+            .limit(gallery.pagination.limit)
             .populate('user', "firstName lastName"),
         processList = [...preprocessedPhotoList];
 
-    gallery.photoCount = await PhotoModel.countDocuments();
     gallery.fullGallery = processList
         .map((sourceData, index) => formatPhotoForFrontEndConsumption(sourceData, index));
 
+    gallery.photos.data = processList
+        .map((sourceData, index) => formatPhotoForFrontEndConsumption(sourceData, index));
+    gallery.photos.pullCount = processList.length;
+
     // Set Cache
-    await cacheResults(req, gallery);
+    //await cacheResults(req, gallery);
 
     return res
         .status(200)
@@ -92,6 +115,9 @@ export const addPhoto = asyncHandler(async (req, res, next) => {
         photo.setSrc(cloudinaryResponse.url);
 
         const storedPhoto = await PhotoModel.create(photo, null);
+
+        // Delete Cache if Exists
+        deleteCache(req, "/v1/api/gallery/photos");
 
         return res
             .status(200)

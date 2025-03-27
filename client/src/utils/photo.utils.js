@@ -1,7 +1,3 @@
-export const filterPhotoAlbumFor = (filterType) => {
-    console.log("Swap Album To: ", filterType);
-};
-
 export const constructPhoto = (imgData, photoAltText, photoTitle, photoDescription, imgEXIFData, dimensions, customDownloadName, tags) => ({
     src: imgData,
         alt: photoAltText,
@@ -29,3 +25,21 @@ export const constructPhoto = (imgData, photoAltText, photoTitle, photoDescripti
     photoTakenOn: imgEXIFData.dateTimeOriginal,
     tags
 });
+export const getTripLocation = (loc) => {
+    const splitBySpace = loc.split(" ");
+
+    let tripName = "";
+
+    if(splitBySpace.length === 4) {
+        tripName = `${splitBySpace[2]} ${splitBySpace[3]}`;
+    } else if (splitBySpace.length === 5) {
+        tripName = `${splitBySpace[2]} ${splitBySpace[3]} ${splitBySpace[4]}`;
+    } // Not sure if this will get larger...Need a better way to handle this.
+
+    return tripName;
+};
+export const getTripDate = (loc) => {
+    const splitBySpace = loc.split(" ");
+    return `${splitBySpace[0]} ${splitBySpace[1]}`;
+};
+export const getTripName = (photoList) => photoList[0].tags[1];

@@ -15,6 +15,7 @@
 
 # Future
 - [ ] Resource Management: Update Photo Resource
+- [ ] Infinite Scroller For All Items View
 
 # Known Bugs
 - [ ] Mobile - Filtering for Exact Pattern Matching Not Working

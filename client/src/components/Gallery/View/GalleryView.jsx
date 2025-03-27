@@ -1,16 +1,7 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import "react-photo-album/masonry.css";
 import "yet-another-react-lightbox/styles.css";
 import "yet-another-react-lightbox/plugins/captions.css";
-
-import { MasonryPhotoAlbum } from "react-photo-album";
-import { UnstableInfiniteScroll as InfiniteScroll } from "react-photo-album/scroll";
-
-import Lightbox from "yet-another-react-lightbox";
-import Captions from "yet-another-react-lightbox/plugins/captions";
-import Download from "yet-another-react-lightbox/plugins/download";
-import Zoom from "yet-another-react-lightbox/plugins/zoom";
-//import Share from "yet-another-react-lightbox/plugins/share"; // Broken
 
 import { UNKNOWN_ERROR } from "../../../constants/frontend.constants";
 import { useFetchGalleryQuery } from "../../../redux/slices/gallery.api.slice";
@@ -19,13 +10,26 @@ import {NoPhotosBlock} from "./NoPhotos/NoPhotos";
 import {useLocation} from "react-router-dom";
 
 import "./GalleryView.css";
+import {AdvancedFiltering} from "../../../utils/filter.utils";
+import {getTripDate, getTripLocation, getTripName} from "../../../utils/photo.utils";
+import {LightBoxShell} from "../../LightboxShell/LightBoxShell";
+import {MasonryPhotoAlbumShell} from "../../MasonryPhotoAlbumShell/MasonryPhotoAlbumShell";
+import {InfiniteScrollShell} from "../../InfiniteScrollShell/InfiniteScrollShell";
+
 
 export const GalleryView = ({ currentView: categoryRequested }) => {
     const
         { state: filterState } = useLocation(),
-        { data: photoGallery, isLoading: isLoadingGallery, error: galleryError } = useFetchGalleryQuery(),
+        [paginateData, setPaginateData] = useState({
+            currentRound: 1,
+            skip: 0,
+            totalRounds: 0,
+            limit: 10
+        }),
+        { data: photoGallery, isLoading: isLoadingGallery, error: galleryError, refetch: refetchGallery } = useFetchGalleryQuery(paginateData),
         [galleryFromServer, setGalleryFromServer] = useState(null),
-        [gallery, setGallery] = useState([]),
+        [fullGallery, setFullGallery] = useState([]),
+        [filteredGallery, setFilteredGallery] = useState([]),
         [galleryTypeView, setGalleryTypeView] = useState(null),
         [filtersInUse, setFiltersInUse] = useState(false),
         [travelPhotoGroups, setTravelPhotoGroups] = useState(null);
@@ -67,119 +71,56 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                 filteredGallery = galleryFromServer.filter((photo) => photo.tags.indexOf(categoryToShow) > -1);
             }
         } else {
-            let secondaryFilter = [];
-
-            const
-                lowercasedFilters = filters.toLowerCase(),
-                filterByExact = (
-                    typeof lowercasedFilters === 'string' &&
-                    lowercasedFilters.length > 0 &&
-                    (lowercasedFilters.includes("\"") || lowercasedFilters.includes("\'"))
-                ),
-                filterByExclusion = lowercasedFilters.includes("-"),
-                filterByFuzzy = lowercasedFilters.includes("~"),
-                filterByWebsiteOnly = lowercasedFilters.includes("site:"),
-                filterByAllSites = lowercasedFilters.includes("|"),
-                filterByNumberRange = lowercasedFilters.includes(".."),
-                filterByFileType = lowercasedFilters.includes("filetype:");
-
-            if(filterByExact) { // Priority 0
-                let exactFilterValues = extractExactQuotationMaterialFromFilterQuery(lowercasedFilters);
-
-                exactFilterValues.forEach((searchParam) => {
-                    let searchValue = searchParam.replace(/"/g, "");
-                    searchValue = searchValue.replace(/'/g, "");
-                    let subsetList = galleryFromServer.filter((photo) => (photo.title.toLowerCase().includes(searchValue.trim().toLowerCase())));
-                    secondaryFilter.push(...subsetList);
-                });
-            }
-
-            if(filterByExclusion) { // Priority 1
-                let exclusionFilterValues = extractMaterialFromFilterQuery(lowercasedFilters, '-',  1);
-
-                exclusionFilterValues.forEach((searchParam) => {
-                    if(secondaryFilter.length > 0) {
-                        secondaryFilter = secondaryFilter.filter((photo) => !photo.title.toLowerCase().includes(searchParam));
-                    } else {
-                        secondaryFilter = galleryFromServer.filter((photo) => !photo.title.toLowerCase().includes(searchParam));
-                    }
-                });
-            }
-
-            if(filterByFuzzy) {
-                let fuzzyFilterValues = extractMaterialFromFilterQuery(lowercasedFilters, "~", 1);
-
-                fuzzyFilterValues.forEach((searchParam) => {
-                    let
-                        subsetList_PTitle = galleryFromServer.filter((photo) => photo.title.toLowerCase().includes(searchParam)),
-                        subsetList_PDesc = galleryFromServer.filter((photo) => photo.description.toLowerCase().includes(searchParam));
-
-                    secondaryFilter = [...new Set([...secondaryFilter, ...subsetList_PTitle, ...subsetList_PDesc].map(JSON.stringify))].map(JSON.parse);
-                });
-            }
-
-            if(filterByWebsiteOnly) {
-                let siteFilterValues = extractMaterialFromFilterQuery(lowercasedFilters, "site:", 5);
-
-                siteFilterValues.forEach((searchParam) => {
-                    let subsetList = galleryFromServer.filter((photo) => photo.title.toLowerCase().includes(searchParam));
-                    secondaryFilter = [...new Set([...secondaryFilter, ...subsetList].map(JSON.stringify))].map(JSON.parse);
-                });
-            }
-
-            if(filterByAllSites) {
-                console.log("Not Implemented: Filter By All Sites");
-            }
-
-            if(filterByNumberRange) {
-                let dateRangeFilter = extractDateRangesFromFilterQuery(lowercasedFilters);
-                dateRangeFilter.beforeDates.forEach((beforeDate, i) => {
-                    if(secondaryFilter.length > 0) {
-                        secondaryFilter = secondaryFilter.filter((photo) => {
-                            let photoYear = photo.photoTakenOn.split(",")[0].split("/")[2];
-                            return !!photoYear && (photoYear >= beforeDate && photoYear <= dateRangeFilter.afterDates[i]);
-                        });
-                    } else {
-                        secondaryFilter = galleryFromServer.filter((photo) => {
-                            let photoYear = photo.photoTakenOn.split(",")[0].split("/")[2];
-                            return !!photoYear && (photoYear >= beforeDate && photoYear <= dateRangeFilter.afterDates[i]);
-                        });
-                    }
-                });
-
-            }
-
-            if(filterByFileType) {
-                let fileTypeFilterValues = extractMaterialFromFilterQuery(lowercasedFilters, "filetype:", 9);
-                fileTypeFilterValues.forEach((searchParam) => {
-                   if(secondaryFilter.length > 0) {
-                       secondaryFilter = secondaryFilter.filter((photo) => photo.src.includes(searchParam));
-                   } else {
-                       secondaryFilter = galleryFromServer.filter((photo) => photo.src.includes(searchParam));
-                   }
-                });
-            }
-
             setFiltersInUse(true);
-            filteredGallery = secondaryFilter;
+            filteredGallery = AdvancedFiltering(filters, galleryFromServer);
         }
 
         // Finally Set The Data
-        setGallery(filteredGallery);
+        setFilteredGallery(filteredGallery);
         setGalleryTypeView(categoryToShow);
     };
 
-    const adjustBoxSizing = (containerWidth) => {
-        if (containerWidth < 400) return 1;
-        if (containerWidth < 800) return 3;
-        if (containerWidth < 1200) return 5;
-        return 7;
-    }
+
+    const // Lightbox Controls
+        photoCaptionsRefForLightbox = useRef(null),
+        [showLightbox, setShowLightbox] = useState(false),
+        [lightboxSpotlightIndex, setLightboxSpotlightIndex] = useState(0),
+        openLightbox = (evt) => {
+            const photoIndex = fullGallery.findIndex(photo => photo.src === evt.target.src);
+            setShowLightbox(true);
+            setLightboxSpotlightIndex(photoIndex);
+        };
+
+    // Infinite & Masonry Photo Album ReFetch
+    const fetchMorePhotos = async () => {
+            const updatedParams = {
+                ...paginateData,
+                currentRound: paginateData.currentRound + 1,
+                skip: paginateData.limit * (paginateData.currentRound),
+                totalRounds: Math.ceil(photoGallery.data.photoCount / paginateData.limit)
+            }
+
+            // Don't Allow Repeated Calls to the Backend if We've Reached Total Photos To Return
+            setPaginateData(updatedParams);
+            if(updatedParams.currentRound > (updatedParams.totalRounds + 1)) return null;
+            try {
+                let morePhotos = await refetchGallery(updatedParams);
+                if(morePhotos.status === "fulfilled") {
+                    let ds = [...new Set([...galleryFromServer, ...morePhotos.data.data.fullGallery].map(JSON.stringify))].map(JSON.parse);
+                    setGalleryFromServer(ds);
+                    setFullGallery(ds);
+                }
+                return morePhotos.data.data.photos.data;
+            } catch (error) {
+                console.error("Failed to fetch more photos", error);
+            }
+            return null;
+        };
 
     useEffect(() => {
         if(!isLoadingGallery && !!photoGallery) {
             if(galleryFromServer === null) {
-                setGalleryFromServer(photoGallery.data.fullGallery);
+                setGalleryFromServer(photoGallery.data.photos.data);
             } else {
                 processGalleryView(categoryRequested, filterState?.query);
             }
@@ -187,78 +128,6 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
             console.log("Loading Gallery From Server...", new Date());
         }
     }, [categoryRequested, isLoadingGallery, galleryFromServer, filterState]);
-
-    const // Lightbox Controls
-        photoCaptionsRefForLightbox = React.useRef(null),
-        [showLightbox, setShowLightbox] = useState(false),
-        [lightboxSpotlightIndex, setLightboxSpotlightIndex] = useState(0),
-        openLightbox = (index) => {
-            setShowLightbox(true);
-            setLightboxSpotlightIndex(index);
-        };
-
-    const overrideLightboxForTravelPhotos = (evt) => {
-        const index1 = gallery.findIndex(photo => photo.src === evt.target.src);
-        setLightboxSpotlightIndex(index1);
-        openLightbox(index1);
-    }
-
-    const // Infinite & Masonry Photo Album Controls
-        fetchMorePhotos = async () => {
-            console.log("Fetch More Photos For Infinite Scroll");
-            return null;
-        };
-
-    const getTripLocation = (loc) => {
-        const splitBySpace = loc.split(" ");
-
-        let tripName = "";
-
-        if(splitBySpace.length === 4) {
-            tripName = `${splitBySpace[2]} ${splitBySpace[3]}`;
-        } else if (splitBySpace.length === 5) {
-            tripName = `${splitBySpace[2]} ${splitBySpace[3]} ${splitBySpace[4]}`;
-        } // Not sure if this will get larger...Need a better way to handle this.
-
-        return tripName;
-    };
-    const getTripDate = (loc) => {
-        const splitBySpace = loc.split(" ");
-        return `${splitBySpace[0]} ${splitBySpace[1]}`;
-    };
-    const getTripName = (photoList) => photoList[0].tags[1];
-
-    const extractExactQuotationMaterialFromFilterQuery = (text) => text.match(/(["'])(.*?)\1/g);
-    const extractMaterialFromFilterQuery = (filterStr, pattern, slicePosition) => filterStr.split(' ').filter(p => p.startsWith(pattern)).map(p => p.slice(slicePosition));
-    const extractDateRangesFromFilterQuery = (filterStr) => {
-        // Find all patterns matching XXXX..XXXX where X is a digit
-        const dateRanges = filterStr.match(/\d+..\d+/g);
-
-        // Return empty object if no date ranges found
-        if (!dateRanges) {
-            return {
-                beforeDates: [],
-                afterDates: []
-            };
-        }
-
-        // Process each date range
-        const result = {
-            beforeDates: [],
-            afterDates: []
-        };
-
-        dateRanges.forEach(range => {
-            // Split each range into start and end dates
-            const [before, after] = range.split('..');
-
-            // Convert strings to integers and store
-            result.beforeDates.push(parseInt(before));
-            result.afterDates.push(parseInt(after));
-        });
-
-        return result;
-    }
 
     return (
         <>
@@ -281,40 +150,16 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                                 )
                             }
                         </div>
-                        {gallery?.length === 0 && (
+                        {fullGallery?.length === 0 && (
                             <NoPhotosBlock />
                         )}
                         {
                             (galleryTypeView === "All Items" && !filtersInUse) && (
-                                <InfiniteScroll singleton
-                                                photos={gallery}
-                                                fetch={fetchMorePhotos}
-                                                retries={5}
-                                                onClick={({ photos, photo, index, event }) => openLightbox(index)}
-                                >
-                                    <MasonryPhotoAlbum
-                                        photos={gallery}
-                                        render={{
-                                            image: (props, { photo }) => {
-                                                return (<img
-                                                    src={props.src}
-                                                    alt={props.alt}
-                                                    title={props.title}
-                                                    height={"100%"}
-                                                    width={"100%"}
-                                                    sizes={{
-                                                        size: "1168px",
-                                                        sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
-                                                    }}
-                                                    className={"link"}
-                                                    key={`masonry_tile_${photo.uniqueKey}`}
-                                                />)
-                                            },
-                                        }}
-                                        columns={adjustBoxSizing}
-                                        breakpoints={[220, 360, 480, 600, 900, 1200]}
-                                    />
-                                </InfiniteScroll>
+                                <InfiniteScrollShell
+                                    photos={fullGallery}
+                                    openLightbox={openLightbox}
+                                    fetchMorePhotos={fetchMorePhotos}
+                                />
                             )
                         }
                         {
@@ -324,32 +169,9 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                                         <div className={"mb-5 pb-5"} key={`${index}_travel`}>
                                             <h3 className={"text-white text-decoration-underline text-start mt-4"}>{getTripName(subsetPhotoList)}</h3>
                                             <h5 className={"text-white text-start"}>{getTripDate(locationTime)} - {getTripLocation(locationTime)}</h5>
-                                            <MasonryPhotoAlbum
+                                            <MasonryPhotoAlbumShell
                                                 photos={subsetPhotoList}
-                                                columns={adjustBoxSizing}
-                                                breakpoints={[220, 360, 480, 600, 900, 1200]}
-                                                sizes={{
-                                                    size: "1168px",
-                                                    sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
-                                                }}
-                                                render={{
-                                                    image: (props, { photo }) => {
-                                                        return (<img
-                                                            src={props.src}
-                                                            alt={props.alt}
-                                                            title={props.title}
-                                                            height={"100%"}
-                                                            width={"100%"}
-                                                            sizes={{
-                                                                size: "1168px",
-                                                                sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
-                                                            }}
-                                                            className={"link"}
-                                                            onClick={evt => overrideLightboxForTravelPhotos(evt)}
-                                                            key={`masonry_tile_${photo.uniqueKey}`}
-                                                        />)
-                                                    },
-                                                }}
+                                                openLightbox={openLightbox}
                                             />
                                         </div>
                                     ))}
@@ -357,88 +179,21 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                             )
                         }
                         {
-                            (galleryTypeView !== "All Items" && galleryTypeView !== "Travel") && (
+                            ((galleryTypeView !== "All Items" && galleryTypeView !== "Travel") || filtersInUse) && (
                                 <>
-                                    <MasonryPhotoAlbum
-                                        photos={gallery}
-                                        columns={adjustBoxSizing}
-                                        onClick={(evt) => openLightbox(evt.index)}
-                                        render={{
-                                            image: (props, {photo, width, height}) => {
-                                                return (<img
-                                                    src={props.src}
-                                                    alt={props.alt}
-                                                    title={props.title}
-                                                    height={"100%"}
-                                                    width={"100%"}
-                                                    sizes={{
-                                                        size: "1168px",
-                                                        sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
-                                                    }}
-                                                    className={"link"}
-                                                    key={`masonry_tile_${photo.uniqueKey}`}
-                                                />)
-                                            },
-                                        }}
-                                        breakpoints={[220, 360, 480, 600, 900, 1200]}
+                                    <MasonryPhotoAlbumShell
+                                        photos={filteredGallery}
+                                        openLightbox={openLightbox}
                                     />
                                 </>
                             )
                         }
-                        {
-                            filtersInUse && (
-                                <>
-                                    <MasonryPhotoAlbum
-                                        photos={gallery}
-                                        columns={adjustBoxSizing}
-                                        onClick={(evt) => openLightbox(evt.index)}
-                                        render={{
-                                            image: (props, {photo, width, height}) => {
-                                                return (<img
-                                                    src={props.src}
-                                                    alt={props.alt}
-                                                    title={props.title}
-                                                    height={"100%"}
-                                                    width={"100%"}
-                                                    sizes={{
-                                                        size: "1168px",
-                                                        sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
-                                                    }}
-                                                    className={"link"}
-                                                    key={`masonry_tile_${photo.uniqueKey}`}
-                                                />)
-                                            },
-                                        }}
-                                        breakpoints={[220, 360, 480, 600, 900, 1200]}
-                                    />
-                                </>
-                            )
-                        }
-                        <Lightbox
-                            slides={gallery}
-                            index={lightboxSpotlightIndex}
-                            open={showLightbox}
-                            close={() => setShowLightbox(false)}
-                            plugins={[Captions, Download, Zoom]}
-                            captions={{ref: photoCaptionsRefForLightbox}}
-                            on={{
-                                click: () => {
-                                    (photoCaptionsRefForLightbox.current?.visible
-                                        ? photoCaptionsRefForLightbox.current?.hide
-                                        : photoCaptionsRefForLightbox.current?.show)?.();
-                                },
-                            }}
-                            zoom={{ref: photoCaptionsRefForLightbox}}
-                            sizes={{
-                                size: "3200px",
-                                sizes: [
-                                    {
-                                        viewport: "(max-width: 3200px)",
-                                        size: "calc(100vw - 32px)",
-                                    },
-                                ],
-                            }}
-                            controller={{ closeOnBackdropClick: true, closeOnPullUp: true, closeOnPullDown: true }}
+                        <LightBoxShell
+                            slides={fullGallery}
+                            lightboxSpotlightIndex={lightboxSpotlightIndex}
+                            showLightbox={showLightbox}
+                            setShowLightbox={setShowLightbox}
+                            photoCaptionsRefForLightbox={photoCaptionsRefForLightbox}
                         />
                     </>
                 )

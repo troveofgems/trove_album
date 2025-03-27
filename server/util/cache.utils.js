@@ -23,3 +23,7 @@ const _setCacheArtifacts = async (cache) => {
         fromCache: !!cache
     }
 }
+
+export const deleteCache = (req, cacheKey) => {
+    return req.app.redisClient.del(cacheKey);
+}
