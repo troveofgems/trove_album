@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import "react-photo-album/masonry.css";
 import "yet-another-react-lightbox/styles.css";
 import "yet-another-react-lightbox/plugins/captions.css";
+import "./GalleryView.css";
 
 import { UNKNOWN_ERROR } from "../../../constants/frontend.constants";
 import { useFetchGalleryQuery } from "../../../redux/slices/gallery.api.slice";
@@ -9,30 +10,39 @@ import {Loader} from "../../shared/Loader/Loader";
 import {NoPhotosBlock} from "./NoPhotos/NoPhotos";
 import {useLocation} from "react-router-dom";
 
-import "./GalleryView.css";
 import {AdvancedFiltering} from "../../../utils/filter.utils";
 import {getTripDate, getTripLocation, getTripName} from "../../../utils/photo.utils";
-import {LightBoxShell} from "../../LightboxShell/LightBoxShell";
+import {LightBoxShell, openLightbox} from "../../LightboxShell/LightBoxShell";
 import {MasonryPhotoAlbumShell} from "../../MasonryPhotoAlbumShell/MasonryPhotoAlbumShell";
 import {InfiniteScrollShell} from "../../InfiniteScrollShell/InfiniteScrollShell";
 
-
-export const GalleryView = ({ currentView: categoryRequested }) => {
+export const GalleryView = ({
+    currentView: categoryRequested,
+    initialPagination = {
+        currentRound: 1,
+        skip: 0,
+        totalRounds: 0,
+        limit: 10
+    }
+}) => {
     const
         { state: filterState } = useLocation(),
-        [paginateData, setPaginateData] = useState({
-            currentRound: 1,
-            skip: 0,
-            totalRounds: 0,
-            limit: 10
-        }),
-        { data: photoGallery, isLoading: isLoadingGallery, error: galleryError, refetch: refetchGallery } = useFetchGalleryQuery(paginateData),
+        [paginateData, setPaginateData] = useState(initialPagination),
         [galleryFromServer, setGalleryFromServer] = useState(null),
         [fullGallery, setFullGallery] = useState([]),
         [filteredGallery, setFilteredGallery] = useState([]),
         [galleryTypeView, setGalleryTypeView] = useState(null),
+        [travelPhotoGroups, setTravelPhotoGroups] = useState(null),
         [filtersInUse, setFiltersInUse] = useState(false),
-        [travelPhotoGroups, setTravelPhotoGroups] = useState(null);
+        [showLightbox, setShowLightbox] = useState(false),
+        [lightboxSpotlightIndex, setLightboxSpotlightIndex] = useState(0);
+
+    const { // Fetch Resources From Server
+        data: photoGallery,
+        isLoading: isLoadingGallery,
+        error: galleryError,
+        refetch: refetchGallery
+    } = useFetchGalleryQuery(paginateData);
 
     const processGalleryView = (categoryToShow, filters) => {
         let
@@ -80,18 +90,14 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
         setGalleryTypeView(categoryToShow);
     };
 
-
     const // Lightbox Controls
-        photoCaptionsRefForLightbox = useRef(null),
-        [showLightbox, setShowLightbox] = useState(false),
-        [lightboxSpotlightIndex, setLightboxSpotlightIndex] = useState(0),
         openLightbox = (evt) => {
             const photoIndex = fullGallery.findIndex(photo => photo.src === evt.target.src);
             setShowLightbox(true);
             setLightboxSpotlightIndex(photoIndex);
         };
 
-    // Infinite & Masonry Photo Album ReFetch
+    // 'Infinite' Photo Album ReFetch
     const fetchMorePhotos = async () => {
             const updatedParams = {
                 ...paginateData,
@@ -131,10 +137,9 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
 
     return (
         <>
-            {isLoadingGallery && (<div className={"d-flex w-100 min-vh-100 justify-content-center"}><Loader /></div>)}
             {galleryError && (
-                <div>
-                    {galleryError?.data?.message || galleryError?.error || UNKNOWN_ERROR}
+                <div className={"text-white mt-5"}>
+                    <p>{galleryError?.data?.message || galleryError?.error || UNKNOWN_ERROR}</p>
                 </div>
             )}
             {
@@ -193,11 +198,11 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                             lightboxSpotlightIndex={lightboxSpotlightIndex}
                             showLightbox={showLightbox}
                             setShowLightbox={setShowLightbox}
-                            photoCaptionsRefForLightbox={photoCaptionsRefForLightbox}
                         />
                     </>
                 )
             }
+            {isLoadingGallery && (<div className={"d-flex w-100 min-vh-100 justify-content-center"}><Loader /></div>)}
         </>
     )
 }

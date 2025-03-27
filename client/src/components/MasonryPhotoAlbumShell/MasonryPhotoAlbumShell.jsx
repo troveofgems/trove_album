@@ -8,38 +8,43 @@ const adjustBoxSizing = (containerWidth) => {
     return 7;
 }
 
+const initialPhotoSizes = {
+    size: "1168px",
+    sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
+};
+
+const initialBreakpoints = [220, 360, 480, 600, 900, 1200];
+
 export const MasonryPhotoAlbumShell = ({
     photos,
     columns = adjustBoxSizing,
-    openLightbox
+    openLightbox,
+    overridePhotoSizes = null,
+    overrideBreakpoints = null
 }) => {
+
+    const printPhoto = {
+        image: (props, { photo }) => (
+            <img
+                src={props.src}
+                alt={props.alt}
+                title={props.title}
+                height={"100%"}
+                width={"100%"}
+                className={"link"}
+                onClick={evt => openLightbox(evt)}
+                key={`masonry_tile_${photo.uniqueKey}`}
+            />
+        )
+    };
+
     return (
         <MasonryPhotoAlbum
             photos={photos}
             columns={columns}
-            breakpoints={[220, 360, 480, 600, 900, 1200]}
-            sizes={{
-                size: "1168px",
-                sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
-            }}
-            render={{
-                image: (props, { photo }) => {
-                    return (<img
-                        src={props.src}
-                        alt={props.alt}
-                        title={props.title}
-                        height={"100%"}
-                        width={"100%"}
-                        /*sizes={{
-                            size: "1168px",
-                            sizes: [{ viewport: "(max-width: 1200px)", size: "calc(100vw - 32px)" }],
-                        }}*/
-                        className={"link"}
-                        onClick={evt => openLightbox(evt)}
-                        key={`masonry_tile_${photo.uniqueKey}`}
-                    />)
-                },
-            }}
+            breakpoints={overrideBreakpoints || initialBreakpoints}
+            sizes={overridePhotoSizes || initialPhotoSizes}
+            render={printPhoto}
         />
     );
 }
