@@ -73,6 +73,16 @@ const photoSchema = new mongoose.Schema({
             { type: String, required: true },
         ],
     },
+    year: {
+        type: Number,
+        default: null,
+        validate: {
+            validator: function(v) {
+                return v === null || (Number.isInteger(v) && v >= 1900 && v <= new Date().getFullYear());
+            },
+            message: 'Year must be a valid integer between 1900 and current year, or null'
+        }
+    },
     user: {
       type: Schema.Types.ObjectId,
       required: true,
@@ -88,7 +98,10 @@ photoSchema
             typeof this.gps.latitude === 'number' &&
                 typeof this.gps.longitude === 'number'
         );
-    })
+    });
+
+/** Indexes */
+photoSchema.index({ 'captions.title': 'text', 'captions.description': 'text' });
 
 const Photo = mongoose.model("Photo", photoSchema);
 

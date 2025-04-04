@@ -5,6 +5,13 @@ import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import Lightbox from "yet-another-react-lightbox";
 //import Share from "yet-another-react-lightbox/plugins/share"; // Broken
 
+/*export const // Lightbox Controls
+    openLightbox = (evt, gallery, setShowLightbox, setLightboxSpotlightIndex) => {
+        const photoIndex = gallery.findIndex(photo => photo.src === evt.target.src);
+        setShowLightbox(true);
+        setLightboxSpotlightIndex(photoIndex);
+    };*/
+
 export const LightBoxShell = ({
                                   slides,
                                   lightboxSpotlightIndex,

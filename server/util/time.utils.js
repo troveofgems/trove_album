@@ -23,7 +23,7 @@ export const temporalizeTimestamp = (
         *    // '2025-01-25T11:38:14'
         * **/
         year = timestampToTemporalize.getFullYear(),
-        month = timestampToTemporalize.getMonth().toString().padStart(PAD, PAD_POSITION),
+        month = (timestampToTemporalize.getMonth() + 1) .toString().padStart(PAD, PAD_POSITION),
         day = timestampToTemporalize.getDate().toString().padStart(PAD, PAD_POSITION),
         hours = timestampToTemporalize.getHours().toString().padStart(PAD, PAD_POSITION),
         minutes = timestampToTemporalize.getMinutes().toString().padStart(PAD, PAD_POSITION),

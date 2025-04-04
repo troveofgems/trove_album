@@ -8,6 +8,7 @@ import PhotoModel from "../db/models/photo.model.js";
 import { uploadToCloudinary, removeFromCloudinary } from "../services/cloudinary.service.js";
 
 // Utils
+import {advancedFiltering, buildQuery} from "../util/filter.utils.js";
 import {processBenchmarks, trackAPIReceiveTime} from "../util/api.benchmarker.utils.js";
 import {processResultsForAllPromises, waitForPromises} from "../util/promise.resolver.utils.js";
 import {formatPhotoForFrontEndConsumption, setCloudinaryFolderPath,} from "../util/photo.utils.js";
@@ -18,54 +19,108 @@ import {
     DELETE_DEFAULT_SUCCESS_MESSAGE
 } from "../constants/app.error.message.constants.js";
 
+const setCountDocumentFilter = (fetchSettings) => (
+    (
+        fetchSettings.filters.category === "*" ||
+        fetchSettings.filters.category === "All Items"
+    ) ?
+        {} :
+        { tags: { $in: [`${fetchSettings.filters.category}`] }}
+)
+
 // @access Public
 export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
-    const totalResources = await PhotoModel.countDocuments();
+    const convertPageSettingsToJson = !!req.query.fetchSettings && JSON.parse(req.query.fetchSettings);
 
     let
+        findQuery = {},
+        totalResources = 0;
+
+    if(!!convertPageSettingsToJson) {
+        findQuery = setCountDocumentFilter(convertPageSettingsToJson);
+    }
+
+    totalResources = await PhotoModel.countDocuments(findQuery);
+
+    console.log("Work With: ", convertPageSettingsToJson);
+    let
         gallery = {
-            fullGallery: [], // Deprecate This Usage In Favor of photos nest
             photos: {
-                data: [],
-                pullCount: 0
+                imageList: [],
+                groupMap: new Map(),
+                pullCount: 0,
+                totalPhotoCount: totalResources,
+                pagination: {
+                    page: convertPageSettingsToJson.page || 1,
+                    offset: convertPageSettingsToJson.offset || 0,
+                    maxPages: Math.ceil(totalResources / (convertPageSettingsToJson.limit || 10)),
+                    limit: convertPageSettingsToJson.limit || 10
+                }
             },
-            photoCount: totalResources,
-            fetchTS: markTimestamp(),
-            pagination: {
-                currentRound: Number(req.query.currentRound) || 1,
-                skip: Number(req.query.skip) || 0,
-                totalRounds: (Number(req.query.totalRounds) || (Math.ceil(totalResources / (Number(req.query.limit) || 10)))),
-                limit: Number(req.query.limit) || 10
-            }
+            /*filters: convertFiltersToJson,
+            */
         },
         existentCache = false; //await probeForCache(req);
 
-    if(gallery.pagination.currentRound > gallery.pagination.totalRounds) {
+    const maximumTriesExceeded = (convertPageSettingsToJson.page > convertPageSettingsToJson.maxPages);
+    if(maximumTriesExceeded) {
         return res.status(200).json({
             data: null,
             message: "No More Photos!"
         });
     }
 
+    // Cache Exists from Prior Call. Return Cache Instead of proceeding with request.
     if(existentCache) return res
         .status(200)
         .json(existentCache);
 
-    const // No Cache Exists...Continue with Request
-        excludePhotoKeys = "-srcSet -cloudinary._id -download._id -captions._id -device._id -dimensions._id -gps._id",
-        preprocessedPhotoList = await PhotoModel
-            .find({}, excludePhotoKeys, null)
-            .skip(gallery.pagination.skip)
-            .limit(gallery.pagination.limit)
-            .populate('user', "firstName lastName"),
-        processList = [...preprocessedPhotoList];
+    /*const
+        processCategoryWithFilters = gallery.filters.category !== "*" && !!gallery.filters.filterStr;
 
-    gallery.fullGallery = processList
-        .map((sourceData, index) => formatPhotoForFrontEndConsumption(sourceData, index));
+    if(processAllItemsUsingFilters) {
+        advancedFiltering(gallery.filters.filterStr.query, gallery);
+        findQuery = buildQuery(gallery);
+    }
 
-    gallery.photos.data = processList
-        .map((sourceData, index) => formatPhotoForFrontEndConsumption(sourceData, index));
+    if(processCategoryWithFilters) {
+        let filtering = advancedFiltering(gallery.filters.filterStr);
+    }*/
+
+    const excludePhotoKeys = "-srcSet -cloudinary._id -download._id -captions._id -device._id -dimensions._id -gps._id";
+    let processList = [];
+
+    let preprocessedPhotoList = await PhotoModel
+        .find(findQuery, excludePhotoKeys, null)
+        .skip(convertPageSettingsToJson?.offset || 0)
+        .limit(convertPageSettingsToJson?.limit || 10)
+        .populate('user', "firstName lastName");
+
+    processList = [...preprocessedPhotoList];
+    console.log("To Process: ", processList.length, " records");
+
+    gallery.photos.imageList = processList
+        .map((sourceData, index) => formatPhotoForFrontEndConsumption(sourceData, index, 0));
     gallery.photos.pullCount = processList.length;
+
+    console.log("Processed: ", gallery.photos.imageList.length, " records");
+
+    if(convertPageSettingsToJson.filters.category === "Travel") {
+        gallery.photos.imageList.forEach((image) => {
+            const locationTime = `${image.tags[image.tags.length - 1]} ${image.tags[image.tags.length - 2]}`;
+
+            // Add image to the appropriate group
+            if (!gallery.photos.groupMap.has(locationTime)) {
+                gallery.photos.groupMap.set(locationTime, []);
+            }
+
+            gallery.photos.groupMap.get(locationTime).push(image);
+        });
+        gallery.photos.groupMap = Object.fromEntries(gallery.photos.groupMap);
+        console.log("Travel Processed: ", gallery.photos.imageList.length, " records", gallery.photos.groupMap);
+    }
+
+    console.log("To Send Back: ", gallery.photos.imageList.length, " photos from ", convertPageSettingsToJson.filters.category);
 
     // Set Cache
     //await cacheResults(req, gallery);
@@ -74,6 +129,7 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
         .status(200)
         .json({
             data: gallery,
+            fetchTS: markTimestamp(),
             fromCache: false
         });
 });

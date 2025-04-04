@@ -1,3 +1,5 @@
+// Shift this all to the backend
+
 export const AdvancedFiltering = (filters, galleryFromServer) => {
     let secondaryFilter = [];
 
@@ -18,12 +20,10 @@ export const AdvancedFiltering = (filters, galleryFromServer) => {
     if(filterByExact) { // Priority 0
         let exactFilterValues = extractExactQuotationMaterialFromFilterQuery(lowercasedFilters);
 
-        exactFilterValues.forEach((searchParam) => {
-            let searchValue = searchParam.replace(/"/g, "");
-            searchValue = searchValue.replace(/'/g, "");
-            let subsetList = galleryFromServer.filter((photo) => (photo.title.toLowerCase().includes(searchValue.trim().toLowerCase())));
-            secondaryFilter.push(...subsetList);
-        });
+        let searchValue = exactFilterValues[0].replace(/"/g, "");
+        searchValue = searchValue.replace(/'/g, "");
+        let subsetList = galleryFromServer.filter((photo) => (photo.title.toLowerCase().includes(searchValue.toLowerCase().trim())));
+        secondaryFilter.push(...subsetList);
     }
 
     if(filterByExclusion) { // Priority 1
@@ -47,7 +47,7 @@ export const AdvancedFiltering = (filters, galleryFromServer) => {
                 subsetList_PTitle = galleryFromServer.filter((photo) => photo.title.toLowerCase().includes(searchParam)),
                 subsetList_PDesc = galleryFromServer.filter((photo) => photo.description.toLowerCase().includes(searchParam));
 
-            secondaryFilter = [...new Set([...secondaryFilter, ...subsetList_PTitle, ...subsetList_PDesc].map(JSON.stringify))].map(JSON.parse);
+            secondaryFilter = dedupArrays([...secondaryFilter, ...subsetList_PTitle, ...subsetList_PDesc]);
         });
     }
 
@@ -57,7 +57,7 @@ export const AdvancedFiltering = (filters, galleryFromServer) => {
 
         siteFilterValues.forEach((searchParam) => {
             let subsetList = galleryFromServer.filter((photo) => photo.title.toLowerCase().includes(searchParam));
-            secondaryFilter = [...new Set([...secondaryFilter, ...subsetList].map(JSON.stringify))].map(JSON.parse);
+            secondaryFilter = dedupArrays([...secondaryFilter, ...subsetList]);
         });
     }
 
@@ -100,6 +100,7 @@ export const AdvancedFiltering = (filters, galleryFromServer) => {
     return secondaryFilter;
 };
 
+const dedupArrays = (arrList) => [...new Set(arrList.map(JSON.stringify))].map(JSON.parse);
 const extractExactQuotationMaterialFromFilterQuery = (text) => text.match(/(["'])(.*?)\1/g);
 const extractMaterialFromFilterQuery = (filterStr, pattern, slicePosition) => filterStr.split(' ').filter(p => p.startsWith(pattern)).map(p => p.slice(slicePosition));
 const extractDateRangesFromFilterQuery = (filterStr) => {
@@ -131,3 +132,40 @@ const extractDateRangesFromFilterQuery = (filterStr) => {
 
     return result;
 };
+
+export const setFrontendFilters = (categoryRequested, fs) => {
+    return ({
+        category: categoryRequested === "All Items" ? "*" : categoryRequested,
+        filterStr: fs,
+        by: {
+            exact: {
+                flagged: false,
+                terms: null
+            },
+            exclusion: {
+                flagged: false,
+                terms: null
+            },
+            fuzzy: {
+                flagged: false,
+                terms: null
+            },
+            websiteOnly: {
+                flagged: false,
+                terms: null
+            },
+            allSites: {
+                flagged: false,
+                terms: null
+            },
+            numberRange: {
+                flagged: false,
+                ranges: null
+            },
+            filetype: {
+                flagged: false,
+                terms: null
+            }
+        }
+    });
+}

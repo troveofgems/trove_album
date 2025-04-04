@@ -24,7 +24,7 @@ export const MasonryPhotoAlbumShell = ({
 }) => {
 
     const printPhoto = {
-        image: (props, { photo }) => (
+        image: (props, { photo, index }) => (
             <img
                 src={props.src}
                 alt={props.alt}
@@ -33,7 +33,7 @@ export const MasonryPhotoAlbumShell = ({
                 width={"100%"}
                 className={"link"}
                 onClick={evt => openLightbox(evt)}
-                key={`masonry_tile_${photo.uniqueKey}`}
+                key={`masonry_tile_${photo.uniqueKey}_${index}`}
             />
         )
     };

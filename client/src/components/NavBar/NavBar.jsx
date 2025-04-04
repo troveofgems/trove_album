@@ -60,7 +60,7 @@ export const NavBar = ({ onViewChange, setIsHovering }) => {
                         onMouseEnter={() => setIsHovering(true)}
                         onMouseLeave={() => setIsHovering(false)}
                     >
-                        <NavDropdown title="Gallery Views" id="navbarScrollingDropdown">
+                        <NavDropdown title="Menu" id="navbarScrollingDropdown">
                             <Link to={"/"} className={"innerLink dropdown-item"} onClick={() => onViewChange("All Items")}>
                                 Full Gallery
                             </Link>

@@ -1,147 +1,208 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import "react-photo-album/masonry.css";
 import "yet-another-react-lightbox/styles.css";
 import "yet-another-react-lightbox/plugins/captions.css";
 import "./GalleryView.css";
 
 import { UNKNOWN_ERROR } from "../../../constants/frontend.constants";
-import { useFetchGalleryQuery } from "../../../redux/slices/gallery.api.slice";
+import {useFetchPhotosInfiniteQuery} from "../../../redux/slices/gallery.api.slice";
 import {Loader} from "../../shared/Loader/Loader";
 import {NoPhotosBlock} from "./NoPhotos/NoPhotos";
 import {useLocation} from "react-router-dom";
-
-import {AdvancedFiltering} from "../../../utils/filter.utils";
 import {getTripDate, getTripLocation, getTripName} from "../../../utils/photo.utils";
-import {LightBoxShell, openLightbox} from "../../LightboxShell/LightBoxShell";
+import {LightBoxShell} from "../../LightboxShell/LightBoxShell";
 import {MasonryPhotoAlbumShell} from "../../MasonryPhotoAlbumShell/MasonryPhotoAlbumShell";
 import {InfiniteScrollShell} from "../../InfiniteScrollShell/InfiniteScrollShell";
+import {setFiltersObjectForFrontend} from "../../../types/filters.type";
 
-export const GalleryView = ({
-    currentView: categoryRequested,
-    initialPagination = {
-        currentRound: 1,
-        skip: 0,
-        totalRounds: 0,
-        limit: 10
-    }
-}) => {
+export const GalleryView = ({ currentView: categoryRequested }) => {
     const
-        { state: filterState } = useLocation(),
-        [paginateData, setPaginateData] = useState(initialPagination),
-        [galleryFromServer, setGalleryFromServer] = useState(null),
-        [fullGallery, setFullGallery] = useState([]),
-        [filteredGallery, setFilteredGallery] = useState([]),
-        [galleryTypeView, setGalleryTypeView] = useState(null),
-        [travelPhotoGroups, setTravelPhotoGroups] = useState(null),
+        {state: filterState} = useLocation(),
+        [gallery, setGallery] = useState([]),
+        [travelPhotoGroups, setTravelPhotoGroups] = useState(new Map()),
+        [allResourcesLoaded, setAllResourcesLoaded] = useState(false),
+        [noResourcesAvailable, setNoResourcesAvailable] = useState(true),
         [filtersInUse, setFiltersInUse] = useState(false),
         [showLightbox, setShowLightbox] = useState(false),
         [lightboxSpotlightIndex, setLightboxSpotlightIndex] = useState(0);
 
-    const { // Fetch Resources From Server
-        data: photoGallery,
-        isLoading: isLoadingGallery,
-        error: galleryError,
-        refetch: refetchGallery
-    } = useFetchGalleryQuery(paginateData);
-
-    const processGalleryView = (categoryToShow, filters) => {
-        let
-            filtersAreEmpty = filters === undefined || filters === null || filters === "",
-            filteredGallery = [];
-
-        if(filtersAreEmpty) {
-            setFiltersInUse(false);
-            let
-                processAllItems = categoryToShow === "All Items",
-                processTravel = categoryToShow === "Travel",
-                processOtherCategories = !processAllItems && !processTravel;
-
-            if(processAllItems) {
-                filteredGallery = galleryFromServer;
+    const {
+        data: infinitePhotoData, error,
+        isLoading, isFetching,
+        fetchNextPage
+    } = useFetchPhotosInfiniteQuery(`${categoryRequested}`, {
+        initialPageParam: {
+            offset: 0,
+            limit: 10,
+            page: 1,
+            maxPages: 1,
+            filters: {
+                ...setFiltersObjectForFrontend(categoryRequested, filterState),
+                category: categoryRequested === "All Items" ? "*" : categoryRequested,
             }
-
-            if(processTravel) {
-                const photoGroups = new Map();
-                let travelPhotos = galleryFromServer.filter((photo) => photo.tags.indexOf(categoryToShow) > -1);
-                travelPhotos.forEach((image) => {
-                    const locationTime = `${image.tags[image.tags.length - 1]} ${image.tags[image.tags.length - 2]}`;
-
-                    // Add image to the appropriate group
-                    if (!photoGroups.has(locationTime)) {
-                        photoGroups.set(locationTime, []);
-                    }
-
-                    photoGroups.get(locationTime).push(image);
-                });
-                setTravelPhotoGroups(photoGroups);
-                filteredGallery = travelPhotos;
-            }
-
-            if(processOtherCategories) {
-                filteredGallery = galleryFromServer.filter((photo) => photo.tags.indexOf(categoryToShow) > -1);
-            }
-        } else {
-            setFiltersInUse(true);
-            filteredGallery = AdvancedFiltering(filters, galleryFromServer);
         }
+    });
 
-        // Finally Set The Data
-        setFilteredGallery(filteredGallery);
-        setGalleryTypeView(categoryToShow);
-    };
+    const handleServerDataUpdate = (result, lastPageReached) => {
+        if (result.status === "fulfilled") {
+            let galleryViewUpdate = infinitePhotoData.pages[infinitePhotoData.pages.length - 1].data.photos.imageList;
+
+            console.log("Process For Travel? ", infinitePhotoData.filters.category === "Travel");
+
+            /*if(infinitePhotoData.filters.category === "Travel") {
+                console.log("Process Travel Category!");
+                const map = ;
+                console.log("Travel: ", infinitePhotoData.pages.data.photos.groupMap);
+                setTravelPhotoGroups(map);
+                console.log("Set Travel Photo Groups To: ", map, travelPhotoGroups);
+            }*/
+
+            if (lastPageReached) setAllResourcesLoaded(true);
+            let galleryUpdate = infinitePhotoData.pages.flatMap(page => page.data.photos.imageList);
+            setGallery(galleryUpdate);
+            return galleryViewUpdate;
+        }
+    }
 
     const // Lightbox Controls
-        openLightbox = (evt) => {
-            const photoIndex = fullGallery.findIndex(photo => photo.src === evt.target.src);
+        handleOpenLightbox = (evt) => {
+            const
+                photoList = flatMapPhotos(),
+                photoIndex = photoList.findIndex(photo => photo.src === evt.target.src);
             setShowLightbox(true);
             setLightboxSpotlightIndex(photoIndex);
         };
 
-    // 'Infinite' Photo Album ReFetch
-    const fetchMorePhotos = async () => {
-            const updatedParams = {
-                ...paginateData,
-                currentRound: paginateData.currentRound + 1,
-                skip: paginateData.limit * (paginateData.currentRound),
-                totalRounds: Math.ceil(photoGallery.data.photoCount / paginateData.limit)
-            }
+    const handleFetchMorePhotos = async () => {
+        let
+            useInfiniteScroll = false,
+            lastResponse = infinitePhotoData.pages[infinitePhotoData.pages.length - 1],
+            lastResponseParams = infinitePhotoData.pageParams[infinitePhotoData.pageParams.length - 1],
+            lastPageReached =
+                lastResponseParams.page === (lastResponse.data.photos.pagination.maxPages) ||
+                lastResponseParams.page > (lastResponse.data.photos.pagination.maxPages);
 
-            // Don't Allow Repeated Calls to the Backend if We've Reached Total Photos To Return
-            setPaginateData(updatedParams);
-            if(updatedParams.currentRound > (updatedParams.totalRounds + 1)) return null;
-            try {
-                let morePhotos = await refetchGallery(updatedParams);
-                if(morePhotos.status === "fulfilled") {
-                    let ds = [...new Set([...galleryFromServer, ...morePhotos.data.data.fullGallery].map(JSON.stringify))].map(JSON.parse);
-                    setGalleryFromServer(ds);
-                    setFullGallery(ds);
-                }
-                return morePhotos.data.data.photos.data;
-            } catch (error) {
-                console.error("Failed to fetch more photos", error);
-            }
-            return null;
-        };
+        let allowCallToProceed = (
+            (lastPageReached && !allResourcesLoaded) ||
+            lastResponseParams.page < (lastResponse.data.photos.pagination.maxPages) ||
+            useInfiniteScroll
+        );
 
-    useEffect(() => {
-        if(!isLoadingGallery && !!photoGallery) {
-            if(galleryFromServer === null) {
-                setGalleryFromServer(photoGallery.data.photos.data);
-            } else {
-                processGalleryView(categoryRequested, filterState?.query);
-            }
-        } else {
-            console.log("Loading Gallery From Server...", new Date());
+        if (!allowCallToProceed) return null;
+
+        let enableInfinitePhotoScroll = (
+            lastResponseParams.page <= (lastResponse.data.photos.pagination.maxPages + 1)
+        );
+
+        try {
+            const morePhotos = await fetchNextPage();
+            return handleServerDataUpdate(morePhotos, lastPageReached);
+        } catch (err) {
+            console.warn("Error Fetching More Photos: ", err);
         }
-    }, [categoryRequested, isLoadingGallery, galleryFromServer, filterState]);
+        return null;
+    };
+    const flatMapPhotos = () => infinitePhotoData.pages.flatMap(page => page.data.photos.imageList);
+
+    const handleTravelPhotoGroups = () => {
+        const groupedPhotos = [
+            ...new Map([
+                ...infinitePhotoData
+                    .pages
+                    .flatMap(page => Object.entries(page.data.photos.groupMap))
+            ].entries())];
+
+        console.log("Grouped Photos? ", groupedPhotos);
+
+        return [
+            ...new Map(Object.entries(infinitePhotoData.pages[infinitePhotoData.pages.length - 1].data.photos.groupMap)).entries()
+        ].map(([locationTime, subsetPhotoList], index) => (
+            <div className={"mb-5 pb-5"} key={`${index}_travel`}>
+                <h3 className={"text-white text-decoration-underline text-start mt-4"}>{getTripName(subsetPhotoList)}</h3>
+                <h5 className={"text-white text-start"}>{getTripDate(locationTime)} - {getTripLocation(locationTime)}</h5>
+                <MasonryPhotoAlbumShell
+                    photos={subsetPhotoList}
+                    openLightbox={handleOpenLightbox}
+                />
+            </div>
+        ))
+    }
 
     return (
         <>
-            {galleryError && (
+            {(isLoading || isFetching) && (
+                <Loader />
+            )}
+            {!!error && (
                 <div className={"text-white mt-5"}>
-                    <p>{galleryError?.data?.message || galleryError?.error || UNKNOWN_ERROR}</p>
+                    <p>{error?.data?.message || error?.error || UNKNOWN_ERROR}</p>
                 </div>
             )}
+            {
+                ((!isLoading || !isFetching) && !!infinitePhotoData) && (
+                    <>
+                        <div className={"text-start text-white"}>
+                            <h2 className={"text-white mt-5 mb-5"}>Viewing: {categoryRequested === "All Items" ? "Full Gallery" : categoryRequested}</h2>
+                            {noResourcesAvailable && (
+                                <div className={"mt-5 mb-5 text-center"}>
+                                    <NoPhotosBlock />
+                                </div>
+                            )}
+                            {
+                                categoryRequested === "All Items" && (
+                                    <>
+                                        {
+                                            <InfiniteScrollShell
+                                                photos={gallery}
+                                                openLightbox={handleOpenLightbox}
+                                                fetchMorePhotos={handleFetchMorePhotos}
+                                            />
+                                        }
+                                    </>
+                                )
+                            }
+                            {
+                                categoryRequested === "Travel" &&
+                                travelPhotoGroups !== undefined &&
+                                travelPhotoGroups !== null && (
+                                    <>
+                                        {handleTravelPhotoGroups()}
+                                    </>
+                                )
+                            }
+                            {
+                                categoryRequested !== "All Items" &&
+                                categoryRequested !== "Travel" && (
+                                    <>
+                                        {
+                                            <MasonryPhotoAlbumShell
+                                                photos={flatMapPhotos()}
+                                                openLightbox={handleOpenLightbox}
+                                            />
+                                        }
+                                    </>
+                                )
+                            }
+                            <LightBoxShell
+                                slides={flatMapPhotos()}
+                                lightboxSpotlightIndex={lightboxSpotlightIndex}
+                                showLightbox={showLightbox}
+                                setShowLightbox={setShowLightbox}
+                            />
+                        </div>
+                        {allResourcesLoaded && (
+                            <div className={"mt-5 mb-5 pb-5"}>
+                                <h4 className={"text-white"}>All Resources Loaded! ☺️</h4>
+                            </div>
+                        )}
+                    </>
+                )
+            }
+        </>
+        /*<>
+
+        infinitePhotoData.pages.flatMap(page => page.data.photos.imageList)
+
             {
                 !isLoadingGallery && (
                     <>
@@ -155,54 +216,21 @@ export const GalleryView = ({
                                 )
                             }
                         </div>
-                        {fullGallery?.length === 0 && (
-                            <NoPhotosBlock />
-                        )}
+
                         {
                             (galleryTypeView === "All Items" && !filtersInUse) && (
                                 <InfiniteScrollShell
-                                    photos={fullGallery}
-                                    openLightbox={openLightbox}
-                                    fetchMorePhotos={fetchMorePhotos}
-                                />
+                                photos={fullGallery}
+                                openLightbox={openLightbox}
+                                fetchMorePhotos={() => {}}
+                            />
                             )
                         }
-                        {
-                            (galleryTypeView === "Travel" && !filtersInUse) && (
-                                <>
-                                    {[...travelPhotoGroups.entries()].map(([locationTime, subsetPhotoList], index) => (
-                                        <div className={"mb-5 pb-5"} key={`${index}_travel`}>
-                                            <h3 className={"text-white text-decoration-underline text-start mt-4"}>{getTripName(subsetPhotoList)}</h3>
-                                            <h5 className={"text-white text-start"}>{getTripDate(locationTime)} - {getTripLocation(locationTime)}</h5>
-                                            <MasonryPhotoAlbumShell
-                                                photos={subsetPhotoList}
-                                                openLightbox={openLightbox}
-                                            />
-                                        </div>
-                                    ))}
-                                </>
-                            )
-                        }
-                        {
-                            ((galleryTypeView !== "All Items" && galleryTypeView !== "Travel") || filtersInUse) && (
-                                <>
-                                    <MasonryPhotoAlbumShell
-                                        photos={filteredGallery}
-                                        openLightbox={openLightbox}
-                                    />
-                                </>
-                            )
-                        }
-                        <LightBoxShell
-                            slides={fullGallery}
-                            lightboxSpotlightIndex={lightboxSpotlightIndex}
-                            showLightbox={showLightbox}
-                            setShowLightbox={setShowLightbox}
-                        />
+
+
                     </>
                 )
             }
-            {isLoadingGallery && (<div className={"d-flex w-100 min-vh-100 justify-content-center"}><Loader /></div>)}
-        </>
+        </>*/
     )
 }
