@@ -1,15 +1,12 @@
 import React from "react";
-import {Spinner} from "react-bootstrap";
 
+import "./Loader.css";
 export const Loader = () => (
-    <Spinner
-        animation={"border"}
-        role={"status"}
-        style={{
-            width: "100px",
-            height: "100px",
-            margin: "auto",
-            display: "block"
-        }}
-    ></Spinner>
-)
+    <div className="circle">
+        <div className="outer">
+            <div className="middle">
+                <div className="inner"></div>
+            </div>
+        </div>
+    </div>
+);

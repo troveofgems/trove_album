@@ -18,13 +18,15 @@ import {setFiltersObjectForFrontend} from "../../../types/filters.type";
 export const GalleryView = ({ currentView: categoryRequested }) => {
     const
         {state: filterState} = useLocation(),
+        [rtkData, setRtkData] = useState(null),
         [gallery, setGallery] = useState([]),
         [travelPhotoGroups, setTravelPhotoGroups] = useState(new Map()),
         [allResourcesLoaded, setAllResourcesLoaded] = useState(false),
         [noResourcesAvailable, setNoResourcesAvailable] = useState(true),
         [filtersInUse, setFiltersInUse] = useState(false),
         [showLightbox, setShowLightbox] = useState(false),
-        [lightboxSpotlightIndex, setLightboxSpotlightIndex] = useState(0);
+        [lightboxSpotlightIndex, setLightboxSpotlightIndex] = useState(0),
+        [enableInfiniteScroll, setEnableInfiniteScroll] = useState(false);
 
     const {
         data: infinitePhotoData, error,
@@ -43,23 +45,25 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
         }
     });
 
+    const
+        handleNoResourcesAvailable = (trackingList) => trackingList.length === 0,
+        handleAllResourcesLoaded = (lastPageReached, galleryItems, lastFetch) => lastPageReached && (galleryItems.length === lastFetch.totalPhotoCount),
+        handleCallToTravelPhotoGroups = (filterCategory) => filterCategory === "Travel";
+
     const handleServerDataUpdate = (result, lastPageReached) => {
+        const
+            lastFetch = infinitePhotoData.pages[infinitePhotoData.pages.length - 1].data.photos,
+            galleryItems = infinitePhotoData.pages.flatMap(page => page.data.photos.imageList);
+
+        // Update No Resources State
+        setNoResourcesAvailable(handleNoResourcesAvailable(gallery));
+
+        // Update All Resources Loaded State
+        setAllResourcesLoaded(handleAllResourcesLoaded(lastPageReached, galleryItems, lastFetch));
+
         if (result.status === "fulfilled") {
-            let galleryViewUpdate = infinitePhotoData.pages[infinitePhotoData.pages.length - 1].data.photos.imageList;
-
-            console.log("Process For Travel? ", infinitePhotoData.filters.category === "Travel");
-
-            /*if(infinitePhotoData.filters.category === "Travel") {
-                console.log("Process Travel Category!");
-                const map = ;
-                console.log("Travel: ", infinitePhotoData.pages.data.photos.groupMap);
-                setTravelPhotoGroups(map);
-                console.log("Set Travel Photo Groups To: ", map, travelPhotoGroups);
-            }*/
-
-            if (lastPageReached) setAllResourcesLoaded(true);
-            let galleryUpdate = infinitePhotoData.pages.flatMap(page => page.data.photos.imageList);
-            setGallery(galleryUpdate);
+            let galleryViewUpdate = lastFetch.imageList;
+            setGallery(galleryItems);
             return galleryViewUpdate;
         }
     }
@@ -75,7 +79,7 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
 
     const handleFetchMorePhotos = async () => {
         let
-            useInfiniteScroll = false,
+            useInfiniteScroll = enableInfiniteScroll || false,
             lastResponse = infinitePhotoData.pages[infinitePhotoData.pages.length - 1],
             lastResponseParams = infinitePhotoData.pageParams[infinitePhotoData.pageParams.length - 1],
             lastPageReached =
@@ -102,135 +106,172 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
         }
         return null;
     };
-    const flatMapPhotos = () => infinitePhotoData.pages.flatMap(page => page.data.photos.imageList);
+    const flatMapPhotos = () => rtkData?.pages.flatMap(page => page.data.photos.imageList) || [];
 
-    const handleTravelPhotoGroups = () => {
-        const groupedPhotos = [
-            ...new Map([
-                ...infinitePhotoData
-                    .pages
-                    .flatMap(page => Object.entries(page.data.photos.groupMap))
-            ].entries())];
+    const handleJSXForTravelPhotos = () => {
+        let innerJsx = [];
 
-        console.log("Grouped Photos? ", groupedPhotos);
+        for (const [index, [strValLabel, arrayOfPhotos]] of travelPhotoGroups.entries()) {
+            console.log(`Index: ${index}`);
+            console.log(`Label: ${strValLabel}`);
+            console.log(`Photos:`, arrayOfPhotos);
+            innerJsx.push(
+                <div key={`${index}_travel`}>
+                    <h5 className={"text-white text-start mt-5 mb-3"}>{strValLabel}</h5>
+                    <MasonryPhotoAlbumShell
+                        photos={arrayOfPhotos}
+                        openLightbox={handleOpenLightbox}
+                    />
+                </div>
+            );
+        }
 
-        return [
-            ...new Map(Object.entries(infinitePhotoData.pages[infinitePhotoData.pages.length - 1].data.photos.groupMap)).entries()
-        ].map(([locationTime, subsetPhotoList], index) => (
-            <div className={"mb-5 pb-5"} key={`${index}_travel`}>
-                <h3 className={"text-white text-decoration-underline text-start mt-4"}>{getTripName(subsetPhotoList)}</h3>
-                <h5 className={"text-white text-start"}>{getTripDate(locationTime)} - {getTripLocation(locationTime)}</h5>
-                <MasonryPhotoAlbumShell
+        return (
+            <div className="photo-gallery"  key={`full_travel_panel`}>
+                {innerJsx}
+            </div>
+        );
+        /*[...spreadPhotos.map(([locationTime, subsetPhotoList], index) => (
+            <div className={"mb-5 pb-5 text-white"}>
+{getTripDate(strValLabel)} - {getTripLocation(strValLabel)}
+               {<MasonryPhotoAlbumShell
                     photos={subsetPhotoList}
                     openLightbox={handleOpenLightbox}
-                />
+                />}
             </div>
-        ))
-    }
+        ))]*/
+    };
+    const handleFetchTravelPhotos = () => {
+        console.log("Fetch Travel Photos Here...");
+        return null;
+    };
+    const processTravelPhotoGroups = () => {
+        console.log("handleTravelPhotoGroups ", rtkData.pages);
+
+        const groupedPhotos = new Map([
+                ...rtkData
+                    .pages
+                    .flatMap(page => Object.entries(page.data.photos.groupMap))
+            ].entries());
+
+        console.log("handleTravelPhotoGroups - Grouped Photos? ", groupedPhotos, travelPhotoGroups);
+
+        setTravelPhotoGroups(groupedPhotos);
+        return null;
+    };
+
+    const handleUpdatesToState = () => {
+        console.log("Inside handleUpdateToIDP handle Change: ", infinitePhotoData, rtkData);
+        const makeUpdateToRtkState = shouldUpdate(rtkData, infinitePhotoData),
+            processTravelPhotosIntoMapGroups = (rtkData?.pageParams[rtkData?.pageParams.length - 1].filters?.category === "Travel") || false;
+
+        if(makeUpdateToRtkState) setRtkData(infinitePhotoData);
+        if(processTravelPhotosIntoMapGroups) processTravelPhotoGroups();
+
+        console.log("Inside handleUpdateToIDP RTK State Updated: ", makeUpdateToRtkState, rtkData);
+    };
+
+    useEffect(() => {
+        if(infinitePhotoData !== undefined) return handleUpdatesToState();
+    }, [infinitePhotoData, rtkData]);
+
+
+    const shouldUpdate = (prevData, newData) => {
+        // Quick reference check first
+        if (prevData === newData) return false;
+
+        // Check if both are objects
+        if (!prevData || !newData ||
+            typeof prevData !== 'object' ||
+            typeof newData !== 'object') {
+                return prevData !== newData;
+        }
+
+        // Compare keys and values at top level
+        const prevKeys = Object.keys(prevData);
+        const newKeys = Object.keys(newData);
+
+        if (prevKeys.length !== newKeys.length) return true;
+
+        return prevKeys.some(key => {
+            if (!newData.hasOwnProperty(key)) return true;
+            if (typeof prevData[key] === 'object') {
+                // Handle nested objects separately
+                return prevData[key] !== newData[key]; // Reference check for nested
+            }
+            return prevData[key] !== newData[key];
+        });
+    };
 
     return (
-        <>
-            {(isLoading || isFetching) && (
-                <Loader />
-            )}
-            {!!error && (
-                <div className={"text-white mt-5"}>
-                    <p>{error?.data?.message || error?.error || UNKNOWN_ERROR}</p>
-                </div>
-            )}
+        <div className={"text-start"}>
+            <h2 className={"text-white mt-5 mb-5"}>
+                {categoryRequested === "All Items" ? "Full " : categoryRequested} Gallery
+            </h2>
             {
-                ((!isLoading || !isFetching) && !!infinitePhotoData) && (
+                (!!infinitePhotoData) ? (
                     <>
-                        <div className={"text-start text-white"}>
-                            <h2 className={"text-white mt-5 mb-5"}>Viewing: {categoryRequested === "All Items" ? "Full Gallery" : categoryRequested}</h2>
-                            {noResourcesAvailable && (
-                                <div className={"mt-5 mb-5 text-center"}>
-                                    <NoPhotosBlock />
-                                </div>
-                            )}
-                            {
-                                categoryRequested === "All Items" && (
-                                    <>
-                                        {
-                                            <InfiniteScrollShell
-                                                photos={gallery}
-                                                openLightbox={handleOpenLightbox}
-                                                fetchMorePhotos={handleFetchMorePhotos}
-                                            />
-                                        }
-                                    </>
-                                )
-                            }
-                            {
-                                categoryRequested === "Travel" &&
-                                travelPhotoGroups !== undefined &&
-                                travelPhotoGroups !== null && (
-                                    <>
-                                        {handleTravelPhotoGroups()}
-                                    </>
-                                )
-                            }
-                            {
-                                categoryRequested !== "All Items" &&
-                                categoryRequested !== "Travel" && (
-                                    <>
-                                        {
-                                            <MasonryPhotoAlbumShell
-                                                photos={flatMapPhotos()}
-                                                openLightbox={handleOpenLightbox}
-                                            />
-                                        }
-                                    </>
-                                )
-                            }
-                            <LightBoxShell
-                                slides={flatMapPhotos()}
-                                lightboxSpotlightIndex={lightboxSpotlightIndex}
-                                showLightbox={showLightbox}
-                                setShowLightbox={setShowLightbox}
-                            />
-                        </div>
-                        {allResourcesLoaded && (
-                            <div className={"mt-5 mb-5 pb-5"}>
-                                <h4 className={"text-white"}>All Resources Loaded! ☺️</h4>
+                        {noResourcesAvailable && (
+                            <div className={"mt-5 mb-5 text-center"}>
+                                <NoPhotosBlock />
                             </div>
                         )}
-                    </>
-                )
-            }
-        </>
-        /*<>
-
-        infinitePhotoData.pages.flatMap(page => page.data.photos.imageList)
-
-            {
-                !isLoadingGallery && (
-                    <>
-                        <div className={"text-start mb-4"}>
-                            <h2 className={"text-white mt-5"}>Viewing: {categoryRequested === "All Items" ? "Full Gallery" : categoryRequested}</h2>
-                            {
-                                filtersInUse && (
-                                    <>
-                                        <h4 className={"text-white"}>Filters: {filterState?.query}</h4>
-                                    </>
-                                )
-                            }
-                        </div>
-
                         {
-                            (galleryTypeView === "All Items" && !filtersInUse) && (
+                            categoryRequested === "All Items" && (
                                 <InfiniteScrollShell
-                                photos={fullGallery}
-                                openLightbox={openLightbox}
-                                fetchMorePhotos={() => {}}
-                            />
+                                    photos={[]}
+                                    openLightbox={handleOpenLightbox}
+                                    fetchMorePhotos={handleFetchMorePhotos}
+                                />
                             )
                         }
-
-
+                        {
+                            categoryRequested === "Travel" &&
+                            travelPhotoGroups !== undefined &&
+                            travelPhotoGroups !== null && (
+                                <div>
+                                    {
+                                        (!!travelPhotoGroups && travelPhotoGroups.size > 0) &&
+                                        handleJSXForTravelPhotos()
+                                    }
+                                </div>
+                            )
+                        }
+                        {
+                            categoryRequested !== "All Items" &&
+                            categoryRequested !== "Travel" && (
+                                <>
+                                    {
+                                        <MasonryPhotoAlbumShell
+                                            photos={flatMapPhotos()}
+                                            openLightbox={handleOpenLightbox}
+                                        />
+                                    }
+                                </>
+                            )
+                        }
+                        {
+                            (isLoading || isFetching) && <Loader />
+                        }
+                        {allResourcesLoaded && (
+                            <div className={"mt-5 mb-5 pb-5 text-center"}>
+                                <h4 className={"text-white"}>All Resources Have Been Loaded! ☺️</h4>
+                            </div>
+                        )}
+                        <LightBoxShell
+                            slides={flatMapPhotos()}
+                            lightboxSpotlightIndex={lightboxSpotlightIndex}
+                            showLightbox={showLightbox}
+                            setShowLightbox={setShowLightbox}
+                        />
                     </>
-                )
+                ) : (<Loader />)
             }
-        </>*/
+            {!!error && (
+                <div className={"text-center text-white mt-5"}>
+                    <h4>{error?.data?.message || error?.error || UNKNOWN_ERROR}</h4>
+                </div>
+            )}
+        </div>
     )
 }
