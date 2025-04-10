@@ -3,7 +3,7 @@
         height: 200px;
         width: 200px;
         overflow: hidden;
-        background-image: url(https://hack.lenotta.com/wp-content/uploads/2014/07/outerRing.svg);
+        background-image: url("../../../assets/images/loader/outerRing.svg");
         background-size: 100% auto;
         background-position: center;
         background-repeat: no-repeat;
@@ -13,14 +13,14 @@
     .inner {
         background-size: calc((200px/100) * 40) calc((200px/100) * 40);
         border-radius: 50%;
-        background-image: url(https://hack.lenotta.com/wp-content/uploads/2014/07/circleFull.svg);
+        background-image: url("../../../assets/images/loader/circleFull.svg");
         -webkit-animation: cw 1.5s infinite;
         animation: cw 1.5s infinite;
     }
 
     .middle {
         background-size: calc((200px/100) * 72) calc((200px/100) * 72);
-        background-image: url(https://hack.lenotta.com/wp-content/uploads/2014/07/ring.svg);
+        background-image: url("../../../assets/images/loader/ring.svg");
         -webkit-animation: ccw 3s linear infinite;
         animation: cw 3s linear infinite;
     }
