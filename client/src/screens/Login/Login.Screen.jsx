@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { useLoginMutation } from "../../redux/slices/users.api.slice";
 import { setCredentials } from "../../redux/slices/auth.slice";
-/*import {toast} from "react-toastify";*/
+import {toast} from "react-toastify";
 
 import { Loader } from "../../components/shared/Loader/Loader";
 
@@ -43,7 +43,7 @@ export const LoginScreen = () => {
             navigate(redirect);
         } catch(err) {
             if(process.env.NODE_ENV === 'development') console.error(err);
-            return //toast.error(err?.data?.message || err.error || err.status);
+            return toast.error(err?.data?.message || err.error || err.status);
         }
     }
 
