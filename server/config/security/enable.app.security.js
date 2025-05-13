@@ -67,7 +67,7 @@ export const enableApplicationSecurity = (app) => {
             imgSrc: [
                 "'self'",
                 'https://res.cloudinary.com',
-                'https://imgbb.co',
+                'https://i.ibb.co',
                 'data:'
             ]
         },
