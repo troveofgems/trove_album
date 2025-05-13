@@ -16,10 +16,9 @@ export const LightBoxShell = ({
                                   slides,
                                   lightboxSpotlightIndex,
                                   showLightbox,
-                                  setShowLightbox
+                                  setShowLightbox,
 }) => {
     const photoCaptionsRefForLightbox = useRef(null);
-
     return (
         <Lightbox
             slides={slides}
@@ -45,7 +44,7 @@ export const LightBoxShell = ({
                     },
                 ],
             }}
-            controller={{ closeOnBackdropClick: true, closeOnPullUp: true, closeOnPullDown: true }}
+            controller={{closeOnBackdropClick: true, closeOnPullUp: true, closeOnPullDown: true}}
         />
-    )
+    );
 }

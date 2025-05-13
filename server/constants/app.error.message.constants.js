@@ -1,3 +1,5 @@
+export const ERR_405 = "Method Not Allowed";
+
 /** NOT AUTHORIZED */
 export const NOT_AUTHORIZED_NOT_ADMINISTRATOR = "Unauthorized: Not An Administrator";
 export const NOT_AUTHORIZED_NO_TOKEN_PROVIDED = "Unauthorized: No Token Provided";

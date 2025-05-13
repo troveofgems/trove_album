@@ -15,18 +15,22 @@ import {MasonryPhotoAlbumShell} from "../../MasonryPhotoAlbumShell/MasonryPhotoA
 import {InfiniteScrollShell} from "../../InfiniteScrollShell/InfiniteScrollShell";
 import {setFiltersObjectForFrontend} from "../../../types/filters.type";
 
+const
+    ZERO = 0,
+    ONE = 1;
+
 export const GalleryView = ({ currentView: categoryRequested }) => {
     const
         {state: filterState} = useLocation(),
         [rtkData, setRtkData] = useState(null),
-        [gallery, setGallery] = useState([]),
         [travelPhotoGroups, setTravelPhotoGroups] = useState(new Map()),
         [allResourcesLoaded, setAllResourcesLoaded] = useState(false),
         [noResourcesAvailable, setNoResourcesAvailable] = useState(true),
         [filtersInUse, setFiltersInUse] = useState(false),
         [showLightbox, setShowLightbox] = useState(false),
+        [lightboxPhotos, setLightboxPhotos] = useState([]),
         [lightboxSpotlightIndex, setLightboxSpotlightIndex] = useState(0),
-        [enableInfiniteScroll, setEnableInfiniteScroll] = useState(false);
+        [enableInfiniteScroll, setEnableInfiniteScroll] = useState(false); // TODO: Build Frontend Checkbox Control To Enable/Disable Infinite Scroller
 
     const {
         data: infinitePhotoData, error,
@@ -45,34 +49,71 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
         }
     });
 
-    const
-        handleNoResourcesAvailable = (trackingList) => trackingList.length === 0,
-        handleAllResourcesLoaded = (lastPageReached, galleryItems, lastFetch) => lastPageReached && (galleryItems.length === lastFetch.totalPhotoCount),
-        handleCallToTravelPhotoGroups = (filterCategory) => filterCategory === "Travel";
+    const handleServerDataUpdate = (result) => {
+        console.log(infinitePhotoData.pages[infinitePhotoData.pages.length - ONE].data.photos.imageList);
+        const lastFetch = infinitePhotoData.pages[infinitePhotoData.pages.length - ONE].data.photos;
+        if (result.status === "fulfilled") return lastFetch.imageList;
+    };
 
-    const handleServerDataUpdate = (result, lastPageReached) => {
-        const
-            lastFetch = infinitePhotoData.pages[infinitePhotoData.pages.length - 1].data.photos,
-            galleryItems = infinitePhotoData.pages.flatMap(page => page.data.photos.imageList);
+    const handleResourceMessages = (oldData, newData) => {
+        const lastPageInfo = getLastPageInfo(oldData, newData);
+        console.log("Handle Resource Messages: ", lastPageInfo);
 
-        // Update No Resources State
-        setNoResourcesAvailable(handleNoResourcesAvailable(gallery));
-
-        // Update All Resources Loaded State
-        setAllResourcesLoaded(handleAllResourcesLoaded(lastPageReached, galleryItems, lastFetch));
-
-        if (result.status === "fulfilled") {
-            let galleryViewUpdate = lastFetch.imageList;
-            setGallery(galleryItems);
-            return galleryViewUpdate;
+        if(lastPageInfo.initialPageLoad) {
+            setNoResourcesAvailable(lastPageInfo.noResourcesAvailable);
+            setAllResourcesLoaded(lastPageInfo.noFurtherResourcesToLoadFromServer);
+        } else {
+            setNoResourcesAvailable(lastPageInfo.noResourcesAvailable);
+            setAllResourcesLoaded(lastPageInfo.noFurtherResourcesToLoadFromServer && !lastPageInfo.noResourcesAvailable);
         }
-    }
+    };
+
+    const getLastPageInfo = (oldData, newData) => {
+        const
+            initialPageLoad = !oldData && !!newData,
+            lastPage = newData.pages.length - ONE,
+            lastResponse = infinitePhotoData.pages[infinitePhotoData.pages.length - ONE],
+            lastResponseParams = infinitePhotoData.pageParams[infinitePhotoData.pageParams.length - ONE],
+            lastPageReached =
+                lastResponseParams.page === (lastResponse.data.photos.pagination.maxPages) ||
+                lastResponseParams.page > (lastResponse.data.photos.pagination.maxPages);
+
+        const
+            noResourcesAvailable =
+                newData.pages[lastPage].data.photos.totalPhotoCount === ZERO &&
+                newData.pages[lastPage].data.photos.pullCount === ZERO &&
+                newData.pages[lastPage].data.photos.imageList.length === ZERO,
+            noFurtherResourcesToLoadFromServer =
+                lastPageReached &&
+                newData.pages[lastPage].data.photos.totalPhotoCount ===
+                newData.pages[lastPage].data.photos.imageList.length;
+
+        return {
+            initialPageLoad,
+            lastPageReached,
+            noResourcesAvailable,
+            noFurtherResourcesToLoadFromServer
+        };
+    };
 
     const // Lightbox Controls
         handleOpenLightbox = (evt) => {
             const
-                photoList = flatMapPhotos(),
+                photoList = flatMapPhotos(infinitePhotoData),
                 photoIndex = photoList.findIndex(photo => photo.src === evt.target.src);
+
+            const photos = infinitePhotoData.pages.flatMap(page =>
+                page.data.photos.imageList.map(photo => ({
+                    src: photo.provider.url,
+                    width: photo.width || 1200,
+                    height: photo.height || 800,
+                    title: photo.title,
+                    description: photo.description,
+                    download: { ...photo.download }
+                }))
+            );
+
+            setLightboxPhotos(photos);
             setShowLightbox(true);
             setLightboxSpotlightIndex(photoIndex);
         };
@@ -80,8 +121,8 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
     const handleFetchMorePhotos = async () => {
         let
             useInfiniteScroll = enableInfiniteScroll || false,
-            lastResponse = infinitePhotoData.pages[infinitePhotoData.pages.length - 1],
-            lastResponseParams = infinitePhotoData.pageParams[infinitePhotoData.pageParams.length - 1],
+            lastResponse = infinitePhotoData.pages[infinitePhotoData.pages.length - ONE],
+            lastResponseParams = infinitePhotoData.pageParams[infinitePhotoData.pageParams.length - ONE],
             lastPageReached =
                 lastResponseParams.page === (lastResponse.data.photos.pagination.maxPages) ||
                 lastResponseParams.page > (lastResponse.data.photos.pagination.maxPages);
@@ -95,7 +136,7 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
         if (!allowCallToProceed) return null;
 
         let enableInfinitePhotoScroll = (
-            lastResponseParams.page <= (lastResponse.data.photos.pagination.maxPages + 1)
+            lastResponseParams.page <= (lastResponse.data.photos.pagination.maxPages + ONE)
         );
 
         try {
@@ -106,18 +147,17 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
         }
         return null;
     };
-    const flatMapPhotos = () => rtkData?.pages.flatMap(page => page.data.photos.imageList) || [];
+    const flatMapPhotos = (photoData) => photoData?.pages
+            .flatMap(page => page.data.photos.imageList) || [];
 
     const handleJSXForTravelPhotos = () => {
         let innerJsx = [];
 
         for (const [index, [strValLabel, arrayOfPhotos]] of travelPhotoGroups.entries()) {
-            console.log(`Index: ${index}`);
-            console.log(`Label: ${strValLabel}`);
-            console.log(`Photos:`, arrayOfPhotos);
             innerJsx.push(
                 <div key={`${index}_travel`}>
-                    <h5 className={"text-white text-start mt-5 mb-3"}>{strValLabel}</h5>
+                    <h5 className={"text-white text-start mt-5 mb-2"}>{getTripName(arrayOfPhotos)}</h5>
+                    <h6 className={"text-white text-start mb-2 pb-2"}>{getTripDate(strValLabel)} - {getTripLocation(strValLabel)}</h6>
                     <MasonryPhotoAlbumShell
                         photos={arrayOfPhotos}
                         openLightbox={handleOpenLightbox}
@@ -131,19 +171,6 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                 {innerJsx}
             </div>
         );
-        /*[...spreadPhotos.map(([locationTime, subsetPhotoList], index) => (
-            <div className={"mb-5 pb-5 text-white"}>
-{getTripDate(strValLabel)} - {getTripLocation(strValLabel)}
-               {<MasonryPhotoAlbumShell
-                    photos={subsetPhotoList}
-                    openLightbox={handleOpenLightbox}
-                />}
-            </div>
-        ))]*/
-    };
-    const handleFetchTravelPhotos = () => {
-        console.log("Fetch Travel Photos Here...");
-        return null;
     };
     const processTravelPhotoGroups = () => {
         console.log("handleTravelPhotoGroups ", rtkData.pages);
@@ -161,22 +188,25 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
     };
 
     const handleUpdatesToState = () => {
-        console.log("Inside handleUpdateToIDP handle Change: ", infinitePhotoData, rtkData);
-        const makeUpdateToRtkState = shouldUpdate(rtkData, infinitePhotoData),
-            processTravelPhotosIntoMapGroups = (rtkData?.pageParams[rtkData?.pageParams.length - 1].filters?.category === "Travel") || false;
+        const
+            makeUpdateToRtkState = shouldUpdate(rtkData, infinitePhotoData),
+            processTravelPhotosIntoMapGroups =
+                (rtkData?.pageParams[rtkData?.pageParams.length - 1].filters?.category === "Travel") || false;
 
-        if(makeUpdateToRtkState) setRtkData(infinitePhotoData);
+        if(makeUpdateToRtkState) {
+            setRtkData(infinitePhotoData);
+            handleResourceMessages(rtkData, infinitePhotoData);
+        }
         if(processTravelPhotosIntoMapGroups) processTravelPhotoGroups();
-
-        console.log("Inside handleUpdateToIDP RTK State Updated: ", makeUpdateToRtkState, rtkData);
     };
 
     useEffect(() => {
         if(infinitePhotoData !== undefined) return handleUpdatesToState();
     }, [infinitePhotoData, rtkData]);
 
-
+    // TODO: Move To Util File
     const shouldUpdate = (prevData, newData) => {
+        console.log("Should Update: ", prevData, newData);
         // Quick reference check first
         if (prevData === newData) return false;
 
@@ -219,7 +249,7 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                         {
                             categoryRequested === "All Items" && (
                                 <InfiniteScrollShell
-                                    photos={[]}
+                                    photos={flatMapPhotos(infinitePhotoData)}
                                     openLightbox={handleOpenLightbox}
                                     fetchMorePhotos={handleFetchMorePhotos}
                                 />
@@ -243,7 +273,7 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                                 <>
                                     {
                                         <MasonryPhotoAlbumShell
-                                            photos={flatMapPhotos()}
+                                            photos={flatMapPhotos(infinitePhotoData)}
                                             openLightbox={handleOpenLightbox}
                                         />
                                     }
@@ -259,7 +289,7 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                             </div>
                         )}
                         <LightBoxShell
-                            slides={flatMapPhotos()}
+                            slides={lightboxPhotos}
                             lightboxSpotlightIndex={lightboxSpotlightIndex}
                             showLightbox={showLightbox}
                             setShowLightbox={setShowLightbox}

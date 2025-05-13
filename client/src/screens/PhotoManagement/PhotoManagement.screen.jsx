@@ -1,65 +1,51 @@
 import React, {useMemo, useState} from 'react';
 import {Button, Table} from "react-bootstrap";
 import {Link, useNavigate} from "react-router-dom";
-import {useFetchGalleryQuery, useDeletePhotoMutation} from "../../redux/slices/gallery.api.slice";
+
+// Components
 import Pagination from "../../components/shared/Pagination/Pagination";
 
+// RTK API Functions
+import { useFetchPhotosForManagementQuery } from "../../redux/slices/gallery.api.slice";
+import { useDeletePhotoMutation } from "../../redux/slices/gallery.api.slice";
+
+// Utils & Constants
+import {ONE, FIVE, TEN, TWENTY} from "../../constants/frontend.constants";
+import {changeDefaultPageSize, handlePhotoDelete, handlePhotoUpdate} from "../../utils/photo.utils";
+
+// CSS Imports
 import "./PhotoManagement.Screen.css";
 import classnames from "classnames";
-import {toast} from "react-toastify";
-import {Temporal} from "@js-temporal/polyfill";
 
 export const PhotoManagementScreen = () => {
-    const
-        DefaultPageSize = 10,
-        itemsPerPageCommands = [1, 5, 10, 20],
-        navigate = useNavigate(),
-        [currentPage, setCurrentPage] = useState(1),
-        [pageSizeOverride, setPageSizeOverride] = useState(DefaultPageSize),
-        { data: photoGallery, isLoading: isLoadingGallery, error: galleryError } = useFetchGalleryQuery(),
-        [deletePhoto, isLoading] = useDeletePhotoMutation();
+    const // Component State
+        DefaultPageSize = TEN,
+        itemsPerPageCommands = [ONE, FIVE, TEN, TWENTY],
+        [currentPage, setCurrentPage] = useState(ONE),
+        [filterState, setFilterState] = useState({}),
+        [pageSizeOverride, setPageSizeOverride] = useState(DefaultPageSize);
+
+    const // Component Actions
+        {
+            data: photoGallery,
+            isLoading: isLoadingGallery,
+            error: galleryError
+        } = useFetchPhotosForManagementQuery(),
+        [deletePhoto, isLoading] = useDeletePhotoMutation(),
+        navigate = useNavigate();
 
     const currentTableData = useMemo(() => {
         if(!isLoadingGallery && !!photoGallery) {
-            console.log("Photo Gallery: ", photoGallery);
             const firstPageIndex = (currentPage - 1) * pageSizeOverride;
             const lastPageIndex = firstPageIndex + pageSizeOverride;
-            return (photoGallery?.data.fullGallery.slice(firstPageIndex, lastPageIndex));
+            return (photoGallery?.data?.photos?.imageList?.slice(firstPageIndex, lastPageIndex));
         }
         return [];
-    }, [isLoadingGallery, currentPage, pageSizeOverride]);
-
-    const handlePhotoDelete = async (e, photoId, cloudinaryPublicId) => {
-        const frontendAPIRequestTS = Temporal.Now.instant();
-        e.preventDefault();
-        try {
-            const res = await deletePhoto({ photoId, cloudinaryPublicId: cloudinaryPublicId, frontendAPIRequestTS }).unwrap();
-            console.log(res);
-            if(res.data.statusCode === 207) {
-                return toast.success(res.message);
-            }
-        } catch(err) {
-            if(process.env.NODE_ENV === "development") console.error(err);
-            if((err?.status >= 400 && err?.status < 500) && !!err?.data) {
-                return toast.error(`${err?.status}: API Error - ${err?.data?.message}`);
-            } else {
-                return toast.error(`${err?.originalStatus || 500}: Network Error - ${err?.data.message || err?.status}`);
-            }
-        }
-    };
-
-    const handlePhotoUpdate = (photoId) => {
-        window.alert(`Update Photo! ${photoId}`);
-        //return navigate(`/photos/${photoId}`);
-    };
-
-    const changeDefaultPageSize = (val) => {
-        setCurrentPage(1);
-        return setPageSizeOverride(val);
-    }
+    }, [isLoadingGallery, currentPage, pageSizeOverride, photoGallery]);
 
     return (
         <>
+            <h2 className={"text-center text-white mt-5"}>Resource Management</h2>
             <div className={"d-flex justify-content-end mt-5 mb-3"}>
                 <Link className={"btn btn-primary"} to={"/admin/photo-management/addPhoto"}>Add Photo To Gallery</Link>
             </div>
@@ -74,13 +60,14 @@ export const PhotoManagementScreen = () => {
                     <th className={"text-start"}>Photo Taken On</th>
                     <th>Last Update</th>
                     <th>GPS</th>
+                    <th>Status</th>
                     <th></th>
                 </tr>
                 </thead>
                 <tbody className={currentTableData?.length > 0 ? "" : "w-100 text-center"}>
                 {
                     currentTableData?.map(photo => (
-                        <tr key={`managePhoto_${photo.uniqueKey}`}>
+                        <tr key={`managePhoto_${photo.key}`}>
                             <td>{photo.order}</td>
                             <td className={"text-start"}>{photo.title}</td>
                             <td className={"text-start"}>{photo.download.filename}</td>
@@ -89,14 +76,20 @@ export const PhotoManagementScreen = () => {
                             <td className={"text-start"}>{photo.photoTakenOn}</td>
                             <td>{photo.updatedAt}</td>
                             <td>{photo.gps.mapLink === "No Link Available" ? "-" : (
-                                <a href={photo.gps.mapLink} target={"_blank"} referrerPolicy={"no-referrer"}>
+                                <a
+                                    href={photo.gps.mapLink}
+                                    target={"_blank"}
+                                    referrerPolicy={"no-referrer"}
+                                    rel={"noreferrer"}
+                                >
                                     Map
                                 </a>
                             )}
                             </td>
+                            <td>{photo.provider.status === "completed" ? "Uploaded" : "Pending"}</td>
                             <td>
                                 <div className={"d-flex justify-content-evenly"}>
-                                    <div>
+                                    <div className={"mx-3"}>
                                         <Button
                                             variant={"outline-secondary"}
                                             as="input"
@@ -111,7 +104,7 @@ export const PhotoManagementScreen = () => {
                                             as="input"
                                             type="button"
                                             value="Delete"
-                                            onClick={(e) => handlePhotoDelete(e, photo._id, photo.cloudinary.publicId)}
+                                            onClick={async () => await handlePhotoDelete(photo._id, deletePhoto, navigate)}
                                         />
                                     </div>
                                 </div>
@@ -122,18 +115,21 @@ export const PhotoManagementScreen = () => {
                 </tbody>
             </Table>
             {
-                (!!photoGallery && photoGallery?.data?.fullGallery.length === 0) && (
-                    <h4 className={"text-center"}>No Data Yet!</h4>
+                (!!photoGallery && photoGallery?.data?.photos?.imageList?.length === 0) && (
+                    <>
+                        <h4 className={"text-center text-white mb-3"}>No Data Yet!</h4>
+                        <h6 className={"text-center text-white"}>Add A Photo To Get Started</h6>
+                    </>
                 )
             }
             {
-                (!!photoGallery && photoGallery?.data?.fullGallery.length > 0) && (
+                (!!photoGallery && photoGallery?.data?.photos?.imageList?.length > 0) && (
                     <>
                         <div className={"d-flex justify-content-center mt-3 text-white"}>
                             <Pagination
                                 className={"pagination-bar"}
                                 currentPage={currentPage}
-                                totalCount={photoGallery?.data?.fullGallery.length}
+                                totalCount={photoGallery?.data?.photos?.imageList?.length}
                                 pageSize={pageSizeOverride}
                                 onPageChange={page => setCurrentPage(page)}
                             />
@@ -143,10 +139,14 @@ export const PhotoManagementScreen = () => {
                             <div className={"mb-5"}>
                                 {
                                     itemsPerPageCommands.map(command => (
-                                        <button type={"button"} onClick={() => changeDefaultPageSize(command)}
-                                                className={classnames('maxItemListSelected', {
-                                                    selected: (pageSizeOverride === command)
-                                                })}>
+                                        <button
+                                            type={"button"}
+                                            onClick={() => changeDefaultPageSize(command, setCurrentPage, setPageSizeOverride)}
+                                            className={classnames('maxItemListSelected ', {
+                                                selected: (pageSizeOverride === command)
+                                            })}
+                                            key={`list_size_${command}`}
+                                        >
                                             {command}
                                         </button>
                                     ))

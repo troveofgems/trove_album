@@ -1,179 +1,124 @@
-const NOT_SET = "not set";
+import {setFolderPath} from "../util/photo.utils.js";
+
+const
+    NOT_SET = 'not set',
+    LAT_NOT_SET = 0,
+    LONG_NOT_SET = 0;
+
 export class Photo {
-    constructor({
-                    src = "someBase64String", alt = "Alt Description Of Photo", srcSet = null,
-                    device = { make: NOT_SET, model: NOT_SET },
-                    dimensions = { height: 0, width: 0, sizeInKB: 0 },
-                    captions = { title: NOT_SET, description: NOT_SET },
-                    download = { url: NOT_SET, filename: NOT_SET },
-                    gps = { latitude: 0, longitude: 0, altitude: NOT_SET },
-                    photoTakenOn = NOT_SET,
-                    tags
-    }, user = null) {
-        this.src = src;
-        this.alt = alt;
-        this.srcSet = srcSet;
+    constructor(
+        {   // Req.body Artifacts
+            captions = { title: NOT_SET, description: NOT_SET, alt: NOT_SET },
+            dates = { photoTakenOn: NOT_SET, year: null },
+            device = { make: NOT_SET, model: NOT_SET },
+            dimensions = { height: 0, width: 0, sizeInKB: 0 },
+            download = { url: NOT_SET, filename: NOT_SET },
+            gps = { type: 'Point', coordinates: [LONG_NOT_SET, LAT_NOT_SET], altitude: NOT_SET },
+            provider = { url: NOT_SET, publicOrBucketId: NOT_SET, name: NOT_SET, deleteUrl: NOT_SET, status: NOT_SET },
+            srcSet = null,
+            tags = []
+        },
+        user = null
+    ) {
+        // Photo Provider and Folder Paths
+        this.photoProviderData = setFolderPath(tags);
+
+        // Captions
         this.captions = {
-            title: captions.title,
+            alt: captions.alt,
             description: captions.description,
+            title: captions.title,
         };
-        this.cloudinary = {
-            url: null,
-            publicId: null
+
+        // Dates
+        this.dates = {
+            photoTakenOn: dates.photoTakenOn,
+            year: (
+                dates.photoTakenOn === undefined ||
+                dates.photoTakenOn === null ||
+                dates.photoTakenOn === "Unknown"
+            ) ?
+                "Unknown" :
+                new Date(dates.photoTakenOn.split(",")[0]).getFullYear()
         };
+
+        // Device
         this.device = {
             make: device.make,
             model: device.model
         };
+
+        // Dimensions
         this.dimensions = {
             width: dimensions.width,
             height: dimensions.height,
             sizeInKB: dimensions.sizeInKB
         };
+
+        // Download
         this.download = {
             url: "",
             filename: download.filename,
         };
+
+        // GPS
         this.gps = {
-            latitude: gps.latitude === "Unknown" ? 0 : gps.latitude,
-            longitude: gps.longitude === "Unknown" ? 0 : gps.longitude,
+            type: 'Point',
+            coordinates: gps.latitude === "Unknown" && gps.longitude === "Unknown" ?
+                [0, 0] : [parseFloat(gps.longitude), parseFloat(gps.latitude)],
             altitude: gps.altitude,
             mapLink: null
         };
-        this.photoTakenOn = photoTakenOn;
+
+        // Provider
+        this.provider = {
+            url: provider.url,
+            publicOrBucketId: this.photoProviderData.publicOrBucketId,
+            name: this.photoProviderData.providerName,
+            deleteUrl: this.photoProviderData.deleteUrl,
+            status: this.photoProviderData.status
+        };
+
+        // Source Sets
+        this.srcSet = srcSet;
+
+        // Tags
         this.tags = tags;
+
+        // User
         this.user = user;
     }
 
-    //Getters
-    getSrc() {
-        return this.src;
+    // Photo Property Getters
+    getPhoto() {
+        return this;
     }
 
-    getAlt() {
-        return this.alt;
+    getProvider() {
+        return this.provider.name;
     }
 
-    getSrcSet() {
-        return this.srcSet;
+    getPublicOrBucketId() {
+        return this.provider.publicOrBucketId;
     }
 
-    getWidth() {
-        return this.dimensions.width;
+    // Photo Property Setters
+    setProviderDisplayUrl(displayUrl) {
+        this._nonEmptyValueRequired(displayUrl, "displayUrl");
+        return this.provider.url = displayUrl;
     }
 
-    getHeight() {
-        return this.dimensions.height;
+    setProviderDeleteUrl(deleteUrl) {
+        this._nonEmptyValueRequired(deleteUrl, "deleteUrl");
+        return this.provider.deleteUrl = deleteUrl;
     }
 
-    getSizeInKB() {
-        return this.dimensions.sizeInKB;
+    setPhotoSrcSet(srcSet) {
+        return this.srcSet = srcSet;
     }
 
-    getDeviceMake() {
-        return this.device.make;
-    }
-
-    getDeviceModel() {
-        return this.device.model;
-    }
-
-    getCaptions() {
-        return this.captions;
-    }
-
-    getDownload() {
-        return this.download;
-    }
-
-    getTags() {
-        return this.tags;
-    }
-
-    getGPSLatitude() {
-        return this.gps.latitude;
-    }
-
-    getGPSLongitude() {
-        return this.gps.longitude;
-    }
-
-    getGPSAltitude() {
-        return this.gps.altitude;
-    }
-
-    getUser() {
-        return this.user;
-    }
-
-    getCloudinary() {
-        return this.cloudinary;
-    }
-
-    // Validator
+    // Photo Property Validators
     _nonEmptyValueRequired(val, propName) {
         if(val === "") throw `${propName} is required`;
     }
-
-    //Setters
-    setSrc(src) {
-        this._nonEmptyValueRequired(src, "src");
-        this.src = src;
-    }
-
-    setAlt(alt) {
-        this._nonEmptyValueRequired(alt, "alt");
-        this.alt = alt;
-    }
-
-    setWidth(width) {
-        this._nonEmptyValueRequired(width, "width");
-        this.width = width;
-    }
-
-    setHeight(height) {
-        this._nonEmptyValueRequired(height, "height");
-        this.height = height;
-    }
-
-    setSrcSet(srcSet) {
-        this._nonEmptyValueRequired(srcSet, "srcSet");
-        this.srcSet = srcSet;
-    }
-
-    setCaptions(captions) {
-        this._nonEmptyValueRequired(captions, "captions");
-        this.captions = captions;
-    }
-
-    setDownload(download) {
-        this._nonEmptyValueRequired(download, "download");
-        this.download = download;
-    }
-
-    setTags(tags) {
-        this._nonEmptyValueRequired(tags, "tags");
-        this.tags = tags;
-    }
-
-    setUser(user){
-        this._nonEmptyValueRequired(user, "user");
-        return this.user = user;
-    }
-
-    setCloudinary(cloudinary){
-        this._nonEmptyValueRequired(cloudinary, "cloudinary");
-        return this.cloudinary = cloudinary;
-    }
 }
-
-/*
-export class Album {
-    constructor(id, name, description, photos, albumTag) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.photos = photos;
-        this.albumTag = albumTag;
-    }
-}*/

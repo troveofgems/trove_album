@@ -3,13 +3,9 @@ import {apiSlice} from "./api.slice";
 
 export const galleryApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        fetchGallery: builder.query({
-            query: ({ pagination, filters }) => ({
-                url: `${GALLERY_URL}`,
-                params: {
-                    pagination: JSON.stringify(pagination),
-                    filters: JSON.stringify(filters)
-                }
+        fetchPhotosForManagement: builder.query({
+            query: () => ({
+                url: `${GALLERY_URL}`
             }),
             keepUnusedData: false,
             /*transformResponse: (response) => response.data*/
@@ -101,13 +97,9 @@ export const galleryApiSlice = apiSlice.injectEndpoints({
             invalidatesTags: ["Photos"]
         }),
         deletePhoto: builder.mutation({
-            query: ({ photoId, cloudinaryPublicId, frontendAPIRequestTS }) => ({
+            query: ({ photoId }) => ({
                 url: `${GALLERY_URL}/${photoId}`,
-                method: "DELETE",
-                body: {
-                    cloudinaryPublicId: cloudinaryPublicId,
-                    frontendAPIRequestTS: frontendAPIRequestTS
-                }
+                method: "DELETE"
             }),
             invalidatesTags: ["Photos"]
         }),
@@ -115,8 +107,8 @@ export const galleryApiSlice = apiSlice.injectEndpoints({
 });
 
 export const {
-    useFetchGalleryQuery,
     useFetchPhotosInfiniteQuery,
+    useFetchPhotosForManagementQuery,
     useAddPhotoMutation,
     useUpdatePhotoMutation,
     useDeletePhotoMutation,

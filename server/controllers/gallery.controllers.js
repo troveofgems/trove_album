@@ -1,23 +1,22 @@
 import mongoose from "mongoose";
-import sanitize from "mongo-sanitize";
 import { asyncHandler } from "../middleware/asyncHandler.middleware.js";
 
 // Classes Models & Services
 import { Photo } from "../classes/gallery.classes.js";
 import PhotoModel from "../db/models/photo.model.js";
-import { uploadToCloudinary, removeFromCloudinary } from "../services/cloudinary.service.js";
 
 // Utils
 import {advancedFiltering, buildQuery} from "../util/filter.utils.js";
 import {processBenchmarks, trackAPIReceiveTime} from "../util/api.benchmarker.utils.js";
 import {processResultsForAllPromises, waitForPromises} from "../util/promise.resolver.utils.js";
-import {formatPhotoForFrontEndConsumption, setCloudinaryFolderPath,} from "../util/photo.utils.js";
+import {formatPhotoForFrontEndConsumption, setFolderPath} from "../util/photo.utils.js";
 import {markTimestamp} from "../util/time.utils.js";
 import {cacheResults, deleteCache, probeForCache} from "../util/cache.utils.js";
 import {
     DELETE_DEFAULT_ERROR_MESSAGE, DELETE_DEFAULT_MIXED_MESSAGE,
     DELETE_DEFAULT_SUCCESS_MESSAGE
 } from "../constants/app.error.message.constants.js";
+import {uploadToProvider} from "../services/photo.provider.service.js";
 
 const setCountDocumentFilter = (fetchSettings) => (
     (
@@ -31,7 +30,7 @@ const setCountDocumentFilter = (fetchSettings) => (
 // @access Public
 export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
     const convertPageSettingsToJson = !!req.query.fetchSettings && JSON.parse(req.query.fetchSettings);
-
+    console.log(convertPageSettingsToJson.filters);
     let
         findQuery = {},
         totalResources = 0;
@@ -42,7 +41,6 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
 
     totalResources = await PhotoModel.countDocuments(findQuery);
 
-    console.log("Work With: ", convertPageSettingsToJson);
     let
         gallery = {
             photos: {
@@ -87,7 +85,7 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
         let filtering = advancedFiltering(gallery.filters.filterStr);
     }*/
 
-    const excludePhotoKeys = "-srcSet -cloudinary._id -download._id -captions._id -device._id -dimensions._id -gps._id";
+    const excludePhotoKeys = "-download._id -captions._id -device._id -dimensions._id -gps._id -provider.deleteUrl";
     let processList = [];
 
     let preprocessedPhotoList = await PhotoModel
@@ -97,15 +95,12 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
         .populate('user', "firstName lastName");
 
     processList = [...preprocessedPhotoList];
-    console.log("To Process: ", processList.length, " records");
 
     gallery.photos.imageList = processList
         .map((sourceData, index) => formatPhotoForFrontEndConsumption(sourceData, index, 0));
     gallery.photos.pullCount = processList.length;
 
-    console.log("Processed: ", gallery.photos.imageList.length, " records");
-
-    if(convertPageSettingsToJson.filters.category === "Travel") {
+    if(convertPageSettingsToJson?.filters?.category === "Travel") {
         gallery.photos.imageList.forEach((image) => {
             const locationTime = `${image.tags[image.tags.length - 1]} ${image.tags[image.tags.length - 2]}`;
 
@@ -117,10 +112,7 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
             gallery.photos.groupMap.get(locationTime).push(image);
         });
         gallery.photos.groupMap = Object.fromEntries(gallery.photos.groupMap);
-        console.log("Travel Processed: ", gallery.photos.imageList.length, " records", gallery.photos.groupMap);
     }
-
-    console.log("To Send Back: ", gallery.photos.imageList.length, " photos from ", convertPageSettingsToJson.filters.category);
 
     // Set Cache
     //await cacheResults(req, gallery);
@@ -157,28 +149,33 @@ export const fetchPhotoById = asyncHandler(async (req, res, next) => {
 // @access Private
 export const addPhoto = asyncHandler(async (req, res, next) => {
     const
+        srcData = req.body.src,
         photo = new Photo(
             req.body,
             new mongoose.Types.ObjectId(req.user._id)
-        ),
-        uploadFolderPath = setCloudinaryFolderPath(photo.getTags());
+        );
 
     try {
-        const cloudinaryResponse = await uploadToCloudinary(photo.getSrc(), uploadFolderPath);
+        // Cleanup Unnecessary Properties For DB Storage
+        delete photo.photoProviderData;
 
-        // Store Cloudinary Artifacts To Photo
-        photo.setCloudinary(cloudinaryResponse);
-        photo.setSrc(cloudinaryResponse.url);
-
+        // Create The Photo
         const storedPhoto = await PhotoModel.create(photo, null);
 
-        // Delete Cache if Exists
-        deleteCache(req, "/v1/api/gallery/photos");
+        // Background Process Upload - DO NOT ADD AWAIT OR THEN()
+        uploadToProvider(
+            photo.getProvider(),
+            srcData,
+            photo.getPublicOrBucketId(),
+            photo,
+            storedPhoto._id.toString(),
+            req
+        );
 
         return res
-            .status(200)
+            .status(201)
             .json({
-                message: "Photo Successfully Uploaded!",
+                message: "Photo Accepted For Processing!",
                 data: storedPhoto
             });
     } catch(err) {
@@ -209,28 +206,22 @@ export const updatePhoto = asyncHandler(async (req, res, next) => {
 
 // @access Private
 export const deletePhoto = asyncHandler(async (req, res, next) => {
-    trackAPIReceiveTime(req);
+    const  // Removes Photo from MongoDB & Sends Delete Link For Provider To Frontend
+        photoId = req.params.id,
+        photo = await PhotoModel.findById(photoId, "provider.deleteUrl", null),
+        { deleteUrl } = photo.provider;
 
-    const // Attempts Removal of Photo Resource From Cloudinary Storage and MongoDB
-        resolvedPromises = await waitForPromises(
-            [
-                removeFromCloudinary(sanitize(req.body.cloudinaryPublicId)),
-                PhotoModel.findByIdAndDelete(sanitize(req.params.id), null)
-            ], ["Cloudinary", "MongoDB"],
-            next
-        ),
-        processedPromises = processResultsForAllPromises(resolvedPromises, DELETE_DEFAULT_ERROR_MESSAGE);
-
-    const allAPIsCompletedSuccessfully = processedPromises.data?.every(item => item.statusCode === 200);
-    let message = allAPIsCompletedSuccessfully ?
-        DELETE_DEFAULT_SUCCESS_MESSAGE : DELETE_DEFAULT_MIXED_MESSAGE;
+    // MongoDB Delete
+    await PhotoModel.findByIdAndDelete(photoId, null);
 
     return res
-        .status(processedPromises.statusCode)
+        .status(202)
         .json({
-            data: processedPromises,
-            message,
-            benchmarks: processBenchmarks(req)
+            data: {
+                deleteUrl
+            },
+            message: "Success...Photo Removed From MongoDB. Delete From Provider To Complete Process",
+            statusCode: 202
         });
 });
 

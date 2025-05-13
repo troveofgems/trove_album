@@ -19,11 +19,46 @@ export const enableApplicationSecurity = (app) => {
             defaultSrc: ["'self'"],
             styleSrc: [
                 "'self'",
-                'https://fonts.googleapis.com'
+                'https://fonts.googleapis.com',
+                'https://cdn.jsdelivr.net',  // Swagger UI CDN
+                'https://cdnjs.cloudflare.com', // Swagger UI CDN
+                'http://www.w3.org/2000/svg',
+                'data:image/svg+xml',
+                'http://www.w3.org/2000/svg',
+                "'unsafe-inline'"
+            ],
+            styleSrcElem: [
+                "'self'",
+                'https://fonts.googleapis.com',
+                'https://cdn.jsdelivr.net',
+                'https://cdnjs.cloudflare.com', // Swagger UI CDN
+                'http://www.w3.org/2000/svg',
+                'http://www.w3.org/1999/xlink',
+                'data:image/svg+xml',
+                'http://www.w3.org/2000/svg',
+                "'unsafe-inline'"
+            ],
+            styleSrcAttr: [  // Add this directive
+                "'self'",
+                'https://fonts.googleapis.com',
+                'https://cdn.jsdelivr.net',
+                'https://cdnjs.cloudflare.com', // Swagger UI CDN
+                'http://www.w3.org/2000/svg',
+                'http://www.w3.org/1999/xlink',
+                'data:image/svg+xml',
+                'http://www.w3.org/2000/svg',
+                "'unsafe-inline'"
             ],
             scriptSrc: [
                 "'self'",
-                'https://fonts.googleapis.com'
+                'https://fonts.googleapis.com',
+                'https://cdn.jsdelivr.net',
+                'https://cdnjs.cloudflare.com', // Swagger UI CDN
+                'http://www.w3.org/2000/svg',
+                'http://www.w3.org/1999/xlink',
+                'data:image/svg+xml',
+                'http://www.w3.org/2000/svg',
+                "'unsafe-inline'"
             ],
             fontSrc: [
                 "'self'",
@@ -32,14 +67,22 @@ export const enableApplicationSecurity = (app) => {
             imgSrc: [
                 "'self'",
                 'https://res.cloudinary.com',
+                'https://imgbb.co',
                 'data:'
             ]
         },
     };
 
+
     app.use(helmet({
         contentSecurityPolicy: cspConfig,
+        /*reportOnly: true,
+        reportUri: '/csp-violation-report'*/
     }));
+    /*app.use((req, res, next) => {
+        console.log('Current CSP headers:', res.get('Content-Security-Policy'));
+        next();
+    });*/
     if(isDevelopmentMode) {
         console.log("Helmet Enabled & Provided CSP Config");
     }

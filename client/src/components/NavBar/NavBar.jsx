@@ -6,7 +6,7 @@ import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
-import LouPainting from "../../assets/images/logos/lou_painting.jpg";
+/*import LouPainting from "../../assets/images/logos/lou_painting.jpg";*/
 
 import { Link } from "react-router-dom";
 import {useSelector, useDispatch} from "react-redux";
@@ -45,7 +45,7 @@ export const NavBar = ({ onViewChange, setIsHovering }) => {
             <Container fluid>
                 <Navbar.Brand href="/" className="custom-brand">
                     <div className={"brandImgContainer"}>
-                        <img src={`${LouPainting}`} alt={"Louie Banner Button"} className={"rounded-5 louPortrait"}
+                        <img src={`https://i.ibb.co/Y4gKWb67/lou-painting-ulj3dq.jpg`} alt={"Louie Banner Button"} className={"rounded-5 louPortrait"}
                              onMouseEnter={() => setIsHovering(true)}
                              onMouseLeave={() => setIsHovering(false)}
                         />

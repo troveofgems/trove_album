@@ -1,30 +1,37 @@
+import {toast} from "react-toastify";
+import {ZERO, ONE} from "../constants/frontend.constants";
+
+// Util Functions
 export const constructPhoto = (imgData, photoAltText, photoTitle, photoDescription, imgEXIFData, dimensions, customDownloadName, tags) => ({
     src: imgData,
+    captions: {
         alt: photoAltText,
-        captions: {
-        title: photoTitle,
-            description: photoDescription
+        description: photoDescription,
+        title: photoTitle
+    },
+    dates: {
+        photoTakenOn: imgEXIFData.dateTimeOriginal
     },
     device: {
         make: imgEXIFData.make,
-            model: imgEXIFData.model,
+        model: imgEXIFData.model,
     },
     dimensions: {
         width: dimensions.width,
-            height: dimensions.height,
-            sizeInKB: dimensions.fileSizeInKB
+        height: dimensions.height,
+        sizeInKB: dimensions.fileSizeInKB
     },
     download: {
         filename: customDownloadName
     },
     gps: {
         latitude: imgEXIFData.gpsLatitude,
-            longitude: imgEXIFData.gpsLongitude,
-            altitude: imgEXIFData.gpsAltitude,
+        longitude: imgEXIFData.gpsLongitude,
+        altitude: imgEXIFData.gpsAltitude,
     },
-    photoTakenOn: imgEXIFData.dateTimeOriginal,
     tags
 });
+
 export const getTripLocation = (loc) => {
     const splitBySpace = loc.split(" ");
 
@@ -38,8 +45,38 @@ export const getTripLocation = (loc) => {
 
     return tripName;
 };
+
 export const getTripDate = (loc) => {
     const splitBySpace = loc.split(" ");
-    return `${splitBySpace[0]} ${splitBySpace[1]}`;
+    return `${splitBySpace[ZERO]} ${splitBySpace[ONE]}`;
 };
-export const getTripName = (photoList) => photoList[0].tags[1];
+
+export const getTripName = (photoList) => photoList[ZERO].tags[ONE];
+
+export const changeDefaultPageSize = (val, setCurrentPage, setPageSizeOverride) => {
+    setCurrentPage(ONE);
+    return setPageSizeOverride(val);
+};
+
+// Component Actions
+export const handlePhotoDelete = async (photoId, deletePhoto, navigate) => {
+    try {
+        const res = await deletePhoto({ photoId }).unwrap();
+        if(res.statusCode === 202) {
+            toast.success(res.message);
+            return window.open(res.data.deleteUrl, '_blank');
+        }
+    } catch(err) {
+        if(process.env.NODE_ENV === "development") console.error(err);
+        if((err?.status >= 400 && err?.status < 500) && !!err?.data) {
+            return toast.error(`${err?.status}: API Error - ${err?.data?.message}`);
+        } else {
+            return toast.error(`${err?.originalStatus || 500}: Network Error - ${err?.data.message || err?.status}`);
+        }
+    }
+};
+
+export const handlePhotoUpdate = (photoId, navigate) => {
+    window.alert(`Update Photo! ${photoId}`);
+    return navigate(`/photos/${photoId}`);
+};

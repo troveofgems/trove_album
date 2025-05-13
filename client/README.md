@@ -10,8 +10,10 @@
 - [x] Resource Management: Delete Photo Resource
 - [x] Travel Photo Specific Logic - Photos Listed By Trip, Date, & Location
 - [x] Lou Portrait Banner Box Shadow & Hover Effect
-- [x] Radial Cursor For Site
+- [x] Radial Cursor Follow For Site
 - [x] Lightbox For All Photos
+- [x] Updated Spinner
+- [x] Refactored Code to use RTK in Gallery View
 
 # Future
 - [ ] Resource Management: Update Photo Resource

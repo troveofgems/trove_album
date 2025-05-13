@@ -117,7 +117,7 @@ export const AddPhoto = () => {
         try {
             const res = await addPhoto(photo).unwrap();
             toast.success(res.message);
-            return navigate("/admin/photo-management");
+           /* return navigate("/admin/photo-management");*/
         } catch(err) {
             if(process.env.NODE_ENV === "development") console.error(err);
             return toast.error(err?.data?.message || err.error || err.status);

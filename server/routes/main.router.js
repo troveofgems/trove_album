@@ -38,7 +38,11 @@ export const mountMainRouter = (app) => {
         if(isDevelopmentMode) console.log("=> SWAGGER UI");
     }
 
-    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, { explorer: false }));
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
+        explorer: false,
+        customSiteTitle: "Trove Of Gems Service",
+        customCss: 'html { background-color: "red!important" }'
+    }));
     if(isDevelopmentMode) {
         console.log("http://localhost:5000/api-docs");
         if(isDevelopmentMode) console.log("");
