@@ -135,22 +135,24 @@ export const PhotoManagementScreen = () => {
                             />
                         </div>
                         <div className={"d-flex row text-end mb-5"}>
-                            <small className={"text-white"}>Items Per Page</small>
-                            <div className={"mb-5"}>
-                                {
-                                    itemsPerPageCommands.map(command => (
-                                        <button
-                                            type={"button"}
-                                            onClick={() => changeDefaultPageSize(command, setCurrentPage, setPageSizeOverride)}
-                                            className={classnames('maxItemListSelected ', {
-                                                selected: (pageSizeOverride === command)
-                                            })}
-                                            key={`list_size_${command}`}
-                                        >
-                                            {command}
-                                        </button>
-                                    ))
-                                }
+                            <div className={"mb-5 d-flex justify-content-end"}>
+                                <div className={"w-25 d-flex justify-content-evenly"}>
+                                    <small className={"text-white"}>Items Per Page</small>
+                                    {
+                                        itemsPerPageCommands.map(command => (
+                                            <button
+                                                type={"button"}
+                                                onClick={() => changeDefaultPageSize(command, setCurrentPage, setPageSizeOverride)}
+                                                className={classnames('maxItemListSelected btn btn-secondary', {
+                                                    selected: (pageSizeOverride === command)
+                                                })}
+                                                key={`list_size_${command}`}
+                                            >
+                                                {command}
+                                            </button>
+                                        ))
+                                    }
+                                </div>
                             </div>
                         </div>
                     </>

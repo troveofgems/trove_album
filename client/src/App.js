@@ -5,9 +5,10 @@ import './App.css';
 import {NavBar} from "./components/NavBar/NavBar";
 import {Outlet} from "react-router-dom";
 import {ToastContainer} from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import CursorRadius from "./components/shared/RadialCursor/RadialCursor";
 
+
+import "react-toastify/dist/ReactToastify.css";
 function App() {
     const
         [isHovering, setIsHovering] = useState(false),

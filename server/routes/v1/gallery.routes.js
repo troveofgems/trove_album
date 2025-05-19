@@ -53,6 +53,10 @@ galleryRouter
      *                          "by": {
      *                              "exact": { "flagged": false, terms: null },
      *                              "fuzzy": {"flagged": false, terms: null },
+     *                              "websiteOnly": {"flagged": false, terms: null },
+     *                              "allSites": {"flagged": false, terms: null },
+     *                              "numberRange": {"flagged": false, terms: null },
+     *                              "filetype": {"flagged": false, terms: null },
      *                          },
      *                          "sorting": {
      *                              "by": {

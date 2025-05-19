@@ -119,6 +119,7 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
         };
 
     const handleFetchMorePhotos = async () => {
+        console.log("Inside HandleFetchMorePhotos");
         let
             useInfiniteScroll = enableInfiniteScroll || false,
             lastResponse = infinitePhotoData.pages[infinitePhotoData.pages.length - ONE],
@@ -127,11 +128,18 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                 lastResponseParams.page === (lastResponse.data.photos.pagination.maxPages) ||
                 lastResponseParams.page > (lastResponse.data.photos.pagination.maxPages);
 
+        console.log("Use Infinite Scroll: ", useInfiniteScroll);
+        console.log("Last Response: ", lastResponse);
+        console.log("Last Response Params: ", lastResponseParams);
+        console.log("Last Page Reached: ", lastPageReached);
+
         let allowCallToProceed = (
-            (lastPageReached && !allResourcesLoaded) ||
+            (!lastPageReached) ||
             lastResponseParams.page < (lastResponse.data.photos.pagination.maxPages) ||
             useInfiniteScroll
         );
+
+        console.log("Allow Call To Proceed: ", allowCallToProceed);
 
         if (!allowCallToProceed) return null;
 
@@ -192,6 +200,8 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
             makeUpdateToRtkState = shouldUpdate(rtkData, infinitePhotoData),
             processTravelPhotosIntoMapGroups =
                 (rtkData?.pageParams[rtkData?.pageParams.length - 1].filters?.category === "Travel") || false;
+
+        console.log("Make an Update: ", makeUpdateToRtkState, infinitePhotoData, rtkData);
 
         if(makeUpdateToRtkState) {
             setRtkData(infinitePhotoData);
