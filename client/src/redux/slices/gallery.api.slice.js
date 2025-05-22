@@ -17,50 +17,40 @@ export const galleryApiSlice = apiSlice.injectEndpoints({
                     limit: 10,
                     page: 1,
                     maxPages: 1,
-                    filters: {
-                        category: "Pets",
-                        filterStr: null
+                    settings: {
+                        filters: {
+                            enabled: false,
+                            category: "Pets",
+                            userInputStr: null
+                        }
                     }
                 },
                 getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => {
-                    console.log("Logic For Next Fetch", lastPage, allPages, lastPageParam, allPageParams);
+                    if (lastPage === undefined) return undefined;
                     const nextPage = lastPageParam.page + 1;
-                    console.log("Next Page Is: ", nextPage);
                     const remainingPages = (Math.ceil(lastPage.data.photos.totalPhotoCount / lastPageParam.limit) - nextPage) + 1;
-                    console.log("Remaining Pages", remainingPages, lastPageParam?.maxPages);
-
-                    if (remainingPages <= 0) {
-                        return undefined
-                    }
-
-                    let updatedParams = {
+                    if (remainingPages <= 0) return undefined;
+                    return {
                         ...lastPageParam,
                         page: nextPage,
                         maxPages: Math.ceil(lastPage.data.photos.totalPhotoCount / lastPageParam.limit),
                         offset: lastPageParam.limit * lastPageParam.page,
                     };
-                    console.log("Updated Params: ", updatedParams)
-
-                    console.log("Updated Next Params: ", updatedParams, lastPage.data);
-                    return updatedParams;
                 },
-                // Optionally provide a `getPreviousPageParam` function
                 getPreviousPageParam: (
                     firstPage,
                     allPages,
                     firstPageParam,
                     allPageParams,
                 ) => {
-                    console.log("Logic For Previous Fetch...");
                     return firstPageParam > 0 ? firstPageParam - 1 : undefined
                 }
             },
-            query: ({queryArg, pageParam, extraOptions }) => {
-                console.log("Inside Query??? ", queryArg, pageParam, extraOptions);
+            query: ({ queryArg, pageParam }) => {
                 return ({
                     url: `${GALLERY_URL}`,
                     params: {
-                        fetchSettings: JSON.stringify(pageParam),
+                        uiFetchSettings: JSON.stringify(pageParam),
                     }
                 })
             },

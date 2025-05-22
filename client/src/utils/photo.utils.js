@@ -80,3 +80,47 @@ export const handlePhotoUpdate = (photoId, navigate) => {
     window.alert(`Update Photo! ${photoId}`);
     return navigate(`/photos/${photoId}`);
 };
+
+// Function to deduplicate deeply nested objects
+export function deduplicateObjects(arr) {
+    const seen = new Map();
+
+    function recursiveDedup(obj) {
+        // Handle null and primitives
+        if (obj === null || typeof obj !== 'object') {
+            return obj;
+        }
+
+        // Convert object to string for comparison
+        const str = JSON.stringify(obj);
+
+        // Check if we've seen this object before
+        if (seen.has(str)) {
+            return seen.get(str);
+        }
+
+        // For arrays, create new array and recurse on elements
+        if (Array.isArray(obj)) {
+            const newArr = obj.map(item => recursiveDedup(item));
+            seen.set(str, newArr);
+            return newArr;
+        }
+
+        // For objects, create new object and recurse on values
+        const newObj = {};
+        seen.set(str, newObj);
+
+        for (const [key, value] of Object.entries(obj)) {
+            newObj[key] = recursiveDedup(value);
+        }
+
+        return newObj;
+    }
+
+    const uniqueStrs = [...new Set(arr.map(item => JSON.stringify(recursiveDedup(item))))];
+
+    return uniqueStrs.map(str => JSON.parse(str));
+}
+
+export const mapPhotoData = (rtkData) => rtkData?.pages
+    .flatMap(page => page.data.photos.imageList) || [];

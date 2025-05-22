@@ -4,102 +4,38 @@ import "yet-another-react-lightbox/styles.css";
 import "yet-another-react-lightbox/plugins/captions.css";
 import "./GalleryView.css";
 
-import { UNKNOWN_ERROR } from "../../../constants/frontend.constants";
+import {UNKNOWN_ERROR} from "../../../constants/frontend.constants";
 import {useFetchPhotosInfiniteQuery} from "../../../redux/slices/gallery.api.slice";
 import {Loader} from "../../shared/Loader/Loader";
 import {NoPhotosBlock} from "./NoPhotos/NoPhotos";
-import {useLocation} from "react-router-dom";
-import {getTripDate, getTripLocation, getTripName} from "../../../utils/photo.utils";
+import {getTripDate, getTripLocation, getTripName, mapPhotoData} from "../../../utils/photo.utils";
 import {LightBoxShell} from "../../LightboxShell/LightBoxShell";
 import {MasonryPhotoAlbumShell} from "../../MasonryPhotoAlbumShell/MasonryPhotoAlbumShell";
 import {InfiniteScrollShell} from "../../InfiniteScrollShell/InfiniteScrollShell";
-import {setFiltersObjectForFrontend} from "../../../types/filters.type";
 
 const
     ZERO = 0,
     ONE = 1;
 
-export const GalleryView = ({ currentView: categoryRequested }) => {
+export const GalleryView = ({ viewingGallery, filters }) => {
     const
-        {state: filterState} = useLocation(),
-        [rtkData, setRtkData] = useState(null),
         [travelPhotoGroups, setTravelPhotoGroups] = useState(new Map()),
         [allResourcesLoaded, setAllResourcesLoaded] = useState(false),
         [noResourcesAvailable, setNoResourcesAvailable] = useState(true),
-        [filtersInUse, setFiltersInUse] = useState(false),
         [showLightbox, setShowLightbox] = useState(false),
         [lightboxPhotos, setLightboxPhotos] = useState([]),
         [lightboxSpotlightIndex, setLightboxSpotlightIndex] = useState(0),
         [enableInfiniteScroll, setEnableInfiniteScroll] = useState(false); // TODO: Build Frontend Checkbox Control To Enable/Disable Infinite Scroller
 
-    const {
-        data: infinitePhotoData, error,
-        isLoading, isFetching,
-        fetchNextPage
-    } = useFetchPhotosInfiniteQuery(`${categoryRequested}`, {
-        initialPageParam: {
-            offset: 0,
-            limit: 10,
-            page: 1,
-            maxPages: 1,
-            filters: {
-                ...setFiltersObjectForFrontend(categoryRequested, filterState),
-                category: categoryRequested === "All Items" ? "*" : categoryRequested,
-            }
-        }
-    });
-
     const handleServerDataUpdate = (result) => {
-        console.log(infinitePhotoData.pages[infinitePhotoData.pages.length - ONE].data.photos.imageList);
         const lastFetch = infinitePhotoData.pages[infinitePhotoData.pages.length - ONE].data.photos;
         if (result.status === "fulfilled") return lastFetch.imageList;
-    };
-
-    const handleResourceMessages = (oldData, newData) => {
-        const lastPageInfo = getLastPageInfo(oldData, newData);
-        console.log("Handle Resource Messages: ", lastPageInfo);
-
-        if(lastPageInfo.initialPageLoad) {
-            setNoResourcesAvailable(lastPageInfo.noResourcesAvailable);
-            setAllResourcesLoaded(lastPageInfo.noFurtherResourcesToLoadFromServer);
-        } else {
-            setNoResourcesAvailable(lastPageInfo.noResourcesAvailable);
-            setAllResourcesLoaded(lastPageInfo.noFurtherResourcesToLoadFromServer && !lastPageInfo.noResourcesAvailable);
-        }
-    };
-
-    const getLastPageInfo = (oldData, newData) => {
-        const
-            initialPageLoad = !oldData && !!newData,
-            lastPage = newData.pages.length - ONE,
-            lastResponse = infinitePhotoData.pages[infinitePhotoData.pages.length - ONE],
-            lastResponseParams = infinitePhotoData.pageParams[infinitePhotoData.pageParams.length - ONE],
-            lastPageReached =
-                lastResponseParams.page === (lastResponse.data.photos.pagination.maxPages) ||
-                lastResponseParams.page > (lastResponse.data.photos.pagination.maxPages);
-
-        const
-            noResourcesAvailable =
-                newData.pages[lastPage].data.photos.totalPhotoCount === ZERO &&
-                newData.pages[lastPage].data.photos.pullCount === ZERO &&
-                newData.pages[lastPage].data.photos.imageList.length === ZERO,
-            noFurtherResourcesToLoadFromServer =
-                lastPageReached &&
-                newData.pages[lastPage].data.photos.totalPhotoCount ===
-                newData.pages[lastPage].data.photos.imageList.length;
-
-        return {
-            initialPageLoad,
-            lastPageReached,
-            noResourcesAvailable,
-            noFurtherResourcesToLoadFromServer
-        };
     };
 
     const // Lightbox Controls
         handleOpenLightbox = (evt) => {
             const
-                photoList = flatMapPhotos(infinitePhotoData),
+                photoList = mapPhotoData(infinitePhotoData),
                 photoIndex = photoList.findIndex(photo => photo.src === evt.target.src);
 
             const photos = infinitePhotoData.pages.flatMap(page =>
@@ -119,7 +55,6 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
         };
 
     const handleFetchMorePhotos = async () => {
-        console.log("Inside HandleFetchMorePhotos");
         let
             useInfiniteScroll = enableInfiniteScroll || false,
             lastResponse = infinitePhotoData.pages[infinitePhotoData.pages.length - ONE],
@@ -128,18 +63,11 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                 lastResponseParams.page === (lastResponse.data.photos.pagination.maxPages) ||
                 lastResponseParams.page > (lastResponse.data.photos.pagination.maxPages);
 
-        console.log("Use Infinite Scroll: ", useInfiniteScroll);
-        console.log("Last Response: ", lastResponse);
-        console.log("Last Response Params: ", lastResponseParams);
-        console.log("Last Page Reached: ", lastPageReached);
-
         let allowCallToProceed = (
             (!lastPageReached) ||
             lastResponseParams.page < (lastResponse.data.photos.pagination.maxPages) ||
             useInfiniteScroll
         );
-
-        console.log("Allow Call To Proceed: ", allowCallToProceed);
 
         if (!allowCallToProceed) return null;
 
@@ -155,13 +83,12 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
         }
         return null;
     };
-    const flatMapPhotos = (photoData) => photoData?.pages
-            .flatMap(page => page.data.photos.imageList) || [];
 
     const handleJSXForTravelPhotos = () => {
         let innerJsx = [];
 
         for (const [index, [strValLabel, arrayOfPhotos]] of travelPhotoGroups.entries()) {
+            console.log("Array Of Photos: ", arrayOfPhotos);
             innerJsx.push(
                 <div key={`${index}_travel`}>
                     <h5 className={"text-white text-start mt-5 mb-2"}>{getTripName(arrayOfPhotos)}</h5>
@@ -169,6 +96,7 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                     <MasonryPhotoAlbumShell
                         photos={arrayOfPhotos}
                         openLightbox={handleOpenLightbox}
+                        overrideRTKData={true}
                     />
                 </div>
             );
@@ -180,73 +108,135 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
             </div>
         );
     };
-    const processTravelPhotoGroups = () => {
-        console.log("handleTravelPhotoGroups ", rtkData.pages);
-
+    const processTravelPhotoGroups = (response) => {
         const groupedPhotos = new Map([
-                ...rtkData
-                    .pages
-                    .flatMap(page => Object.entries(page.data.photos.groupMap))
-            ].entries());
-
-        console.log("handleTravelPhotoGroups - Grouped Photos? ", groupedPhotos, travelPhotoGroups);
+            ...response
+                .data
+                .pages
+                .flatMap(page => Object.entries(page.data.photos.groupMap))
+        ].entries());
 
         setTravelPhotoGroups(groupedPhotos);
-        return null;
     };
 
-    const handleUpdatesToState = () => {
-        const
-            makeUpdateToRtkState = shouldUpdate(rtkData, infinitePhotoData),
-            processTravelPhotosIntoMapGroups =
-                (rtkData?.pageParams[rtkData?.pageParams.length - 1].filters?.category === "Travel") || false;
+    const
+        fetchSettingCacheLabel = viewingGallery === "All Items" &&
+        (filters === null || filters === "") ? viewingGallery :
+            !!filters && filters !== "" ? `${viewingGallery}_filteringEnabled_${filters.query}` :
+                viewingGallery;
 
-        console.log("Make an Update: ", makeUpdateToRtkState, infinitePhotoData, rtkData);
+    const handleResourceMessages = (response) => {
+        if(response.status === "fulfilled") {
+            const {
+                fetchQuotaReached = false,
+                imageList
+            } = response.data.pages[response.data.pages.length - 1].data.photos;
 
-        if(makeUpdateToRtkState) {
-            setRtkData(infinitePhotoData);
-            handleResourceMessages(rtkData, infinitePhotoData);
-        }
-        if(processTravelPhotosIntoMapGroups) processTravelPhotoGroups();
-    };
+            const
+                allItemsLoaded = fetchQuotaReached && imageList.length > 0,
+                noItemsLoaded = fetchQuotaReached && imageList.length === 0,
+                someItemsLoaded = !fetchQuotaReached && imageList.length > 0;
 
-    useEffect(() => {
-        if(infinitePhotoData !== undefined) return handleUpdatesToState();
-    }, [infinitePhotoData, rtkData]);
-
-    // TODO: Move To Util File
-    const shouldUpdate = (prevData, newData) => {
-        console.log("Should Update: ", prevData, newData);
-        // Quick reference check first
-        if (prevData === newData) return false;
-
-        // Check if both are objects
-        if (!prevData || !newData ||
-            typeof prevData !== 'object' ||
-            typeof newData !== 'object') {
-                return prevData !== newData;
-        }
-
-        // Compare keys and values at top level
-        const prevKeys = Object.keys(prevData);
-        const newKeys = Object.keys(newData);
-
-        if (prevKeys.length !== newKeys.length) return true;
-
-        return prevKeys.some(key => {
-            if (!newData.hasOwnProperty(key)) return true;
-            if (typeof prevData[key] === 'object') {
-                // Handle nested objects separately
-                return prevData[key] !== newData[key]; // Reference check for nested
+            // Hides or Shows Resource Messages in Component
+            if(allItemsLoaded) {
+                setAllResourcesLoaded(true);
+                setNoResourcesAvailable(false);
+            } else if (noItemsLoaded) {
+                setAllResourcesLoaded(false);
+                setNoResourcesAvailable(true);
+            } else if (someItemsLoaded) {
+                setAllResourcesLoaded(false);
+                setNoResourcesAvailable(false);
             }
-            return prevData[key] !== newData[key];
-        });
+        } else {
+            console.log("Handle Rogue Status: ", response.status);
+            console.log("Rejected: ", response);
+            // Show the Error Message Instead...
+        }
     };
+
+    const {
+        data: infinitePhotoData, error,
+        isLoading, isFetching,
+        fetchNextPage,
+        refetch
+    } = useFetchPhotosInfiniteQuery(
+        fetchSettingCacheLabel,
+        {
+            initialPageParam: {
+                offset: 0,
+                limit: 10,
+                page: 1,
+                maxPages: 1,
+                settings: {
+                    filters: {
+                        enabled: viewingGallery !== "All Items",
+                        enabledWithStrFilter: (filters !== null && filters?.query !== ""),
+                        category: viewingGallery === "All Items" ? "*" : viewingGallery,
+                        userInputStr: filters?.query || "",
+                        by: {
+                            exact: {
+                                flagged: false,
+                                terms: []
+                            },
+                            exclusion: {
+                                flagged: false,
+                                terms: []
+                            },
+                            fuzzy: {
+                                flagged: false,
+                                terms: []
+                            },
+                            websiteOnly: {
+                                flagged: false,
+                                terms: []
+                            },
+                            allSites: {
+                                flagged: false,
+                                terms: []
+                            },
+                            numberRange: {
+                                flagged: false,
+                                ranges: {
+                                    beforeDates: [],
+                                    afterDates: []
+                                }
+                            },
+                            filetype: {
+                                flagged: false,
+                                terms: []
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    );
+
+    // Handles All Category and Filter Changes
+    useEffect(() => {
+        refetch()
+            .then((refetchResponse) =>
+                fetchNextPage()
+                    .then((fetchNextPageResponse) => {
+                        handleResourceMessages(fetchNextPageResponse);
+                        const isTravelCategory =
+                            fetchNextPageResponse.data.pages[fetchNextPageResponse.data.pages.length - 1]
+                                .data
+                                .UIFetchSettings
+                                .settings
+                                .filters
+                                .category === "Travel";
+
+                        if(isTravelCategory) processTravelPhotoGroups(fetchNextPageResponse);
+                    })
+            );
+    }, [filters, viewingGallery]);
 
     return (
         <div className={"text-start"}>
             <h2 className={"text-white mt-5 mb-5"}>
-                {categoryRequested === "All Items" ? "Full " : categoryRequested} Gallery
+                {viewingGallery === "All Items" ? "Full " : viewingGallery} Gallery
             </h2>
             {
                 (!!infinitePhotoData) ? (
@@ -257,16 +247,16 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                             </div>
                         )}
                         {
-                            categoryRequested === "All Items" && (
+                            viewingGallery !== "Travel" && (
                                 <InfiniteScrollShell
-                                    photos={flatMapPhotos(infinitePhotoData)}
+                                    photos={infinitePhotoData}
                                     openLightbox={handleOpenLightbox}
                                     fetchMorePhotos={handleFetchMorePhotos}
                                 />
                             )
                         }
                         {
-                            categoryRequested === "Travel" &&
+                            viewingGallery === "Travel" &&
                             travelPhotoGroups !== undefined &&
                             travelPhotoGroups !== null && (
                                 <div>
@@ -275,19 +265,6 @@ export const GalleryView = ({ currentView: categoryRequested }) => {
                                         handleJSXForTravelPhotos()
                                     }
                                 </div>
-                            )
-                        }
-                        {
-                            categoryRequested !== "All Items" &&
-                            categoryRequested !== "Travel" && (
-                                <>
-                                    {
-                                        <MasonryPhotoAlbumShell
-                                            photos={flatMapPhotos(infinitePhotoData)}
-                                            openLightbox={handleOpenLightbox}
-                                        />
-                                    }
-                                </>
                             )
                         }
                         {

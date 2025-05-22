@@ -6,7 +6,7 @@ import { Photo } from "../classes/gallery.classes.js";
 import PhotoModel from "../db/models/photo.model.js";
 
 // Utils
-import {advancedFiltering, buildQuery} from "../util/filter.utils.js";
+import {getGalleryTemplate} from "../util/filter.utils.js";
 import {processBenchmarks, trackAPIReceiveTime} from "../util/api.benchmarker.utils.js";
 import {processResultsForAllPromises, waitForPromises} from "../util/promise.resolver.utils.js";
 import {formatPhotoForFrontEndConsumption, setFolderPath} from "../util/photo.utils.js";
@@ -18,89 +18,55 @@ import {
 } from "../constants/app.error.message.constants.js";
 import {uploadToProvider} from "../services/photo.provider.service.js";
 
-const setCountDocumentFilter = (fetchSettings) => (
-    (
-        fetchSettings.filters.category === "*" ||
-        fetchSettings.filters.category === "All Items"
-    ) ?
-        {} :
-        { tags: { $in: [`${fetchSettings.filters.category}`] }}
-)
-
 // @access Public
 export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
-    const convertPageSettingsToJson = !!req.query.fetchSettings && JSON.parse(req.query.fetchSettings);
-    console.log(convertPageSettingsToJson.filters);
-    let
-        findQuery = {},
-        totalResources = 0;
+    const cacheExists = false; //await probeForCache(req)
 
-    if(!!convertPageSettingsToJson) {
-        findQuery = setCountDocumentFilter(convertPageSettingsToJson);
-    }
+    // Cache Exists from Prior Call. Return Cache Instead of proceeding with request.
+    if(cacheExists) return res
+        .status(200)
+        .json(cacheExists);
 
-    totalResources = await PhotoModel.countDocuments(findQuery);
+    const
+        excludePhotoKeys = "-download._id -captions._id -device._id -dimensions._id -gps._id -provider.deleteUrl";
 
-    let
-        gallery = {
-            photos: {
-                imageList: [],
-                groupMap: new Map(),
-                pullCount: 0,
-                totalPhotoCount: totalResources,
-                pagination: {
-                    page: convertPageSettingsToJson.page || 1,
-                    offset: convertPageSettingsToJson.offset || 0,
-                    maxPages: Math.ceil(totalResources / (convertPageSettingsToJson.limit || 10)),
-                    limit: convertPageSettingsToJson.limit || 10
-                }
-            },
-            /*filters: convertFiltersToJson,
-            */
-        },
-        existentCache = false; //await probeForCache(req);
+    const { gallery, filterQuery } = await getGalleryTemplate(req.query.uiFetchSettings);
 
-    const maximumTriesExceeded = (convertPageSettingsToJson.page > convertPageSettingsToJson.maxPages);
-    if(maximumTriesExceeded) {
+    if(
+        gallery.photos.fetchQuotaReached &&
+        gallery.photos.pagination.page > gallery.photos.pagination.maxPages
+    ) {
         return res.status(200).json({
-            data: null,
-            message: "No More Photos!"
+            data: gallery,
+            fetchTS: markTimestamp(),
+            fromCache: cacheExists
         });
     }
 
-    // Cache Exists from Prior Call. Return Cache Instead of proceeding with request.
-    if(existentCache) return res
-        .status(200)
-        .json(existentCache);
-
-    /*const
-        processCategoryWithFilters = gallery.filters.category !== "*" && !!gallery.filters.filterStr;
-
-    if(processAllItemsUsingFilters) {
-        advancedFiltering(gallery.filters.filterStr.query, gallery);
-        findQuery = buildQuery(gallery);
-    }
-
-    if(processCategoryWithFilters) {
-        let filtering = advancedFiltering(gallery.filters.filterStr);
-    }*/
-
-    const excludePhotoKeys = "-download._id -captions._id -device._id -dimensions._id -gps._id -provider.deleteUrl";
-    let processList = [];
-
-    let preprocessedPhotoList = await PhotoModel
-        .find(findQuery, excludePhotoKeys, null)
-        .skip(convertPageSettingsToJson?.offset || 0)
-        .limit(convertPageSettingsToJson?.limit || 10)
-        .populate('user', "firstName lastName");
+    let
+        processList = [],
+        preprocessedPhotoList =
+            await PhotoModel
+                .find(
+                    filterQuery,
+                    excludePhotoKeys,
+                    null
+                )
+                .skip(gallery.UIFetchSettings.offset || 0)
+                .limit(gallery.UIFetchSettings.limit || 10)
+                .populate('user', "firstName lastName");
 
     processList = [...preprocessedPhotoList];
 
-    gallery.photos.imageList = processList
-        .map((sourceData, index) => formatPhotoForFrontEndConsumption(sourceData, index, 0));
+    gallery.photos.imageList.push(
+        ...processList
+            .map((sourceData, index) => formatPhotoForFrontEndConsumption(sourceData, index, 0))
+    );
     gallery.photos.pullCount = processList.length;
 
-    if(convertPageSettingsToJson?.filters?.category === "Travel") {
+    const processTravelPhotos = gallery.UIFetchSettings.settings.filters.category === "Travel";
+
+    if(processTravelPhotos) {
         gallery.photos.imageList.forEach((image) => {
             const locationTime = `${image.tags[image.tags.length - 1]} ${image.tags[image.tags.length - 2]}`;
 
@@ -111,6 +77,7 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
 
             gallery.photos.groupMap.get(locationTime).push(image);
         });
+
         gallery.photos.groupMap = Object.fromEntries(gallery.photos.groupMap);
     }
 
@@ -122,7 +89,7 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
         .json({
             data: gallery,
             fetchTS: markTimestamp(),
-            fromCache: false
+            fromCache: cacheExists
         });
 });
 
@@ -227,6 +194,7 @@ export const deletePhoto = asyncHandler(async (req, res, next) => {
 
 // @access Public
 export const searchGalleryByKeyword = asyncHandler(async(req, res, next) => {
+    console.log("Inside Search Gallery By Keywords Controller: ", req.query);
     const keywords = req.query.keywords ? {
         name: {
             $regex: req.query.keywords,

@@ -37,9 +37,7 @@ const
                     Filters:
                         {
                             description: "Available App Filters",
-                            example: {
-
-                            },
+                            example: {},
                             properties: {
                                 category: {
                                     description: "Auto Filter By Category",
@@ -614,65 +612,6 @@ const
                     }
                 }*/
             },
-/*            paths: {
-                '/v1/api/auth/login': {
-                    post: {
-                        summary: 'Authenticate using email and password',
-                        description: 'Logs in and returns an authentication cookie',
-                        requestBody: {
-                            required: true,
-                            description: 'Login credentials',
-                            content: {
-                                'application/x-www-form-urlencoded': {
-                                    schema: {
-                                        type: 'object',
-                                        required: ['email', 'password'],
-                                        properties: {
-                                            email: {
-                                                type: 'string',
-                                                format: 'email',
-                                                example: 'dkgreco@emailProvider.com'
-                                            },
-                                            password: {
-                                                type: 'string',
-                                                format: 'password',
-                                                example: 'your-password-here'
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    security: [],
-                    responses: {
-                        '200': {
-                            description: 'Successfully authenticated. Cookie set in Set-Cookie header.',
-                            headers: {
-                                'Set-Cookie': {
-                                    schema: {
-                                        type: 'string',
-                                        example: 'toga.v1.jwt=abc123; Path=/; HttpOnly'
-                                    }
-                                }
-                            }
-                        },
-                        '401': {
-                            description: 'Invalid credentials',
-                            content: {
-                                'application/json': {
-                                    schema: {
-                                        type: 'object',
-                                        properties: {
-                                            error: { type: 'string', example: 'Invalid credentials' }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            },*/
             /*security: [
                 {
                     cookieAuth: []
