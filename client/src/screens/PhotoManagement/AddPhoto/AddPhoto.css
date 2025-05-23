@@ -1,0 +1,18 @@
+#tagFieldset {
+    border: 1px solid white;
+    padding: 10px;
+}
+
+div.container {
+    width: 100%;
+}
+
+.doublePad {
+    padding-right: 2rem;
+    padding-left: 0;
+}
+
+.pad {
+    padding-right: 2rem;
+    padding-left: 2rem;
+}

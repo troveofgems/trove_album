@@ -1,6 +1,7 @@
 import swaggerUi from 'swagger-ui-express';
 
 import { default as AuthRoutes } from "./v1/auth.routes.js";
+import { default as AdminRoutes } from "./v1/admin.routes.js";
 import { default as GalleryRoutes } from "./v1/gallery.routes.js";
 import { default as OnRenderRoutes } from "./v1/render.routes.js";
 
@@ -16,6 +17,10 @@ export const mountMainRouter = (app) => {
             {
                 route: `/${apiVersionRoute}/auth`,
                 routeLoader: AuthRoutes
+            },
+            {
+                route: `/${apiVersionRoute}/admin`,
+                routeLoader: AdminRoutes
             },
             {
                 route: `/${apiVersionRoute}/gallery`,

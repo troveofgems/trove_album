@@ -1,6 +1,6 @@
 import PhotoModel from "../db/models/photo.model.js";
 
-export const getGalleryTemplate = async (uiFetchSettings) => {
+export const getGalleryTemplate = async (uiFetchSettings, managementFetch = false) => {
     let galleryTemplate = {
         photos: {
             imageList: [],
@@ -13,10 +13,12 @@ export const getGalleryTemplate = async (uiFetchSettings) => {
                 maxPages: 0,
                 limit: 0
             },
-            fetchQuotaReached: 0
+            fetchQuotaReached: false
         },
         UIFetchSettings: null,
     };
+
+    if(managementFetch) return galleryTemplate;
 
     // Applies Page Settings Based off Query Params
     return await applySettingsForGallery(galleryTemplate, uiFetchSettings);

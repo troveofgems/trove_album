@@ -22,7 +22,6 @@ export const PhotoManagementScreen = () => {
         DefaultPageSize = TEN,
         itemsPerPageCommands = [ONE, FIVE, TEN, TWENTY],
         [currentPage, setCurrentPage] = useState(ONE),
-        [filterState, setFilterState] = useState({}),
         [pageSizeOverride, setPageSizeOverride] = useState(DefaultPageSize);
 
     const // Component Actions
@@ -47,14 +46,14 @@ export const PhotoManagementScreen = () => {
         <>
             <h2 className={"text-center text-white mt-5"}>Resource Management</h2>
             <div className={"d-flex justify-content-end mt-5 mb-3"}>
-                <Link className={"btn btn-primary"} to={"/admin/photo-management/addPhoto"}>Add Photo To Gallery</Link>
+                <Link className={"btn button-85"} to={"/admin/photo-management/addPhoto"} role={"button"}>Add Photo To Gallery</Link>
             </div>
-            <Table variant={"responsive"} striped={true} hover={true} className={"mt-5 mb-5"}>
+            <Table id={"tableData"} variant={"responsive"} striped={true} hover={true} className={"mt-5 mb-5"}>
                 <thead>
                 <tr>
                     <th>Order</th>
+                    <th className={"text-start"}>Thumbnail</th>
                     <th className={"text-start"}>Photo Title</th>
-                    <th className={"text-start"}>Download Filename</th>
                     <th>Uploaded By</th>
                     <th>System Upload</th>
                     <th className={"text-start"}>Photo Taken On</th>
@@ -69,8 +68,10 @@ export const PhotoManagementScreen = () => {
                     currentTableData?.map(photo => (
                         <tr key={`managePhoto_${photo.key}`}>
                             <td>{photo.order}</td>
+                            <td className={"text-start"}>
+                                <img src={photo.provider.url} alt={"test"} width={75} height={75}/>
+                            </td>
                             <td className={"text-start"}>{photo.title}</td>
-                            <td className={"text-start"}>{photo.download.filename}</td>
                             <td>{photo.user.fullName}</td>
                             <td>{photo.createdAt}</td>
                             <td className={"text-start"}>{photo.photoTakenOn}</td>
@@ -143,9 +144,13 @@ export const PhotoManagementScreen = () => {
                                             <button
                                                 type={"button"}
                                                 onClick={() => changeDefaultPageSize(command, setCurrentPage, setPageSizeOverride)}
-                                                className={classnames('maxItemListSelected btn btn-secondary', {
-                                                    selected: (pageSizeOverride === command)
-                                                })}
+                                                className={classnames(
+                                                    `maxItemListSelected btn btn-secondary ${pageSizeOverride === command ? "button-85 button-85-item" : ""}`,
+                                                    {
+                                                        selected: (pageSizeOverride === command)
+                                                    }
+                                                    )
+                                                }
                                                 key={`list_size_${command}`}
                                             >
                                                 {command}

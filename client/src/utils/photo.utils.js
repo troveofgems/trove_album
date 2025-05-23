@@ -60,19 +60,33 @@ export const changeDefaultPageSize = (val, setCurrentPage, setPageSizeOverride) 
 
 // Component Actions
 export const handlePhotoDelete = async (photoId, deletePhoto, navigate) => {
-    try {
-        const res = await deletePhoto({ photoId }).unwrap();
-        if(res.statusCode === 202) {
-            toast.success(res.message);
-            return window.open(res.data.deleteUrl, '_blank');
-        }
-    } catch(err) {
-        if(process.env.NODE_ENV === "development") console.error(err);
-        if((err?.status >= 400 && err?.status < 500) && !!err?.data) {
-            return toast.error(`${err?.status}: API Error - ${err?.data?.message}`);
-        } else {
-            return toast.error(`${err?.originalStatus || 500}: Network Error - ${err?.data.message || err?.status}`);
-        }
+    const continueWithDelete = window.prompt(`To delete the resource please type in the id: ${photoId}`);
+    console.log("Continue with delete? ", continueWithDelete);
+    if(continueWithDelete === photoId) {
+        try {
+          const res = await deletePhoto({ photoId }).unwrap();
+          if(res.statusCode === 202) {
+              toast.success(res.message);
+              return window.open(res.data.deleteUrl, '_blank');
+          }
+      } catch(err) {
+          if(process.env.NODE_ENV === "development") console.error(err);
+          if((err?.status >= 400 && err?.status < 500) && !!err?.data) {
+              return toast.error(`${err?.status}: API Error - ${err?.data?.message}`);
+          } else {
+              return toast.error(`${err?.originalStatus || 500}: Network Error - ${err?.data.message || err?.status}`);
+          }
+      }
+    } else {
+        let
+            actionCancelled = continueWithDelete === null,
+            idMismatch = continueWithDelete !== null && continueWithDelete !== photoId,
+            message = "Photo Not Removed!";
+
+        if(actionCancelled) message += " Action Cancelled";
+        if(idMismatch) message += " ID Mismatch";
+
+        return toast.error(message);
     }
 };
 

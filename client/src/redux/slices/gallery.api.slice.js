@@ -5,7 +5,7 @@ export const galleryApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         fetchPhotosForManagement: builder.query({
             query: () => ({
-                url: `${GALLERY_URL}`
+                url: `/v1/api/admin/resource-management`
             }),
             keepUnusedData: false,
             /*transformResponse: (response) => response.data*/

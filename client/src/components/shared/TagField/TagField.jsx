@@ -1,5 +1,6 @@
-import { useState, ChangeEvent } from "react";
+import { useState } from "react";
 
+import "./TagField.css";
 export const TagField = ({ tags, addTag, removeTag, maxTags }) => {
     const [userInput, setUserInput] = useState("");
 
@@ -43,19 +44,23 @@ export const TagField = ({ tags, addTag, removeTag, maxTags }) => {
             </div>
             <div className="flex flex-row flex-wrap gap-3 mt-4 text-start px-2 d-flex justify-content-evenly">
                 {tags.map((tag, index) => (
-                    <span
-                        key={`${index}-${tag}`}
-                        className="inline-flex items-start justify-start px-3 py-2 rounded-[32px] text-sm shadow-sm font-medium bg-white text-blue-800"
-                    >
-                        {tag}
-                        <button
-                            className="mx-2 hover:text-blue-500"
-                            onClick={() => removeTag(tag)}
-                            title={`Remove ${tag}`}
+                    <>
+                        <span
+                            key={`${index}-${tag}`}
+                            /*className="inline-flex items-start justify-start px-3 py-2 rounded-[32px] text-sm shadow-sm font-medium bg-white text-blue-800 tagButton-outer"*/
+                            className="inline-flex items-start justify-start px-3 py-2 rounded-[32px] text-sm shadow-sm font-medium button-85  tagButton-outer"
                         >
-                            &times;
-                        </button>
-                    </span>
+                            {tag}
+                            <button
+                                className={"button-85 tagButton-inner"}
+                                onClick={() => removeTag(tag)}
+                                title={`Remove ${tag}`}
+                            >
+                                &times;
+                            </button>
+                        </span>
+                    </>
+
                 ))}
             </div>
         </div>

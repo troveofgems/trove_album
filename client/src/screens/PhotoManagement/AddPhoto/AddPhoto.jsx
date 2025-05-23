@@ -11,6 +11,10 @@ import {useNavigate} from "react-router-dom";
 import {useAddPhotoMutation} from "../../../redux/slices/gallery.api.slice";
 import {constructPhoto} from "../../../utils/photo.utils";
 
+import Vivianite from "../../../assets/images/logos/vivianite-placeholder-1.jpg";
+
+import "./AddPhoto.css";
+
 export const AddPhoto = () => {
     const
         UNKNOWN_MARKER = 'Unknown',
@@ -31,6 +35,7 @@ export const AddPhoto = () => {
     const [dimensions, setDimensions] = useState({ height: 0, width: 0, fileSizeInKB: 0, fileSizeInMB: 0 });
     const [imgEXIFData, setEXIFData] = useState({ dateTimeOriginal: "", fileType: "", gpsLatitude: 0, gpsLongitude: 0, gpsAltitude: "", make: "", model: "" });
     const imgRef = useRef(null);
+    const imgRefPlaceholder = useRef(null);
 
     /** Page Actions */
     const navigate = useNavigate();
@@ -117,7 +122,7 @@ export const AddPhoto = () => {
         try {
             const res = await addPhoto(photo).unwrap();
             toast.success(res.message);
-           /* return navigate("/admin/photo-management");*/
+            return navigate("/admin/photo-management");
         } catch(err) {
             if(process.env.NODE_ENV === "development") console.error(err);
             return toast.error(err?.data?.message || err.error || err.status);
@@ -129,7 +134,7 @@ export const AddPhoto = () => {
             <h2 className={"mt-5 text-white"}>Add A Photo</h2>
             <Form onSubmit={handleSendPhotoToServer} className={"mb-5"}>
                 <Row>
-                    <Col xs={12} md={4}>
+                    <Col xs={12} md={4} className={"doublePad text-start"}>
                         <Form.Group controlid={"imageUpload"}>
                             <Form.Label column={true} className={"text-white"}>Upload Image</Form.Label>
                             <Form.Control
@@ -140,7 +145,7 @@ export const AddPhoto = () => {
                             >
                             </Form.Control>
                         </Form.Group>
-                        <Form.Group controlid={"title"} className={"mb-3 mt-3"}>
+                        <Form.Group controlid={"title"} className={"mb-3 mt-3 text-start"}>
                             <Form.Label column={true} className={"text-white"}>Title</Form.Label>
                             <Form.Control
                                 type="text"
@@ -149,7 +154,7 @@ export const AddPhoto = () => {
                             >
                             </Form.Control>
                         </Form.Group>
-                        <Form.Group controlid={"description"} className={"mb-5 mt-3"}>
+                        <Form.Group controlid={"description"} className={"mb-5 mt-3 text-start"}>
                             <Form.Label column={true} className={"text-white"}>Custom Download Name</Form.Label>
                             <Form.Control
                                 type="text"
@@ -180,19 +185,91 @@ export const AddPhoto = () => {
                                     maxTags={`${MAX_TAGS}`}
                                 />
                             </InputGroup>
+                            <fieldset id={"tagFieldset"} className={"text-white border-white mt-3"}>
+                                <legend className={"text-start"}>Tag Topic Requirement Examples:</legend>
+                                <small className={"text-center"}>5 Tags Max For Any & All Categories</small>
+                                <div className={"text-start mt-3"}>
+                                    <h6 className={"text-center"}>Family & Friends</h6>
+                                    <div>
+                                        <small>Tag Position 0 (Type): Family & Friends</small>
+                                    </div>
+                                    <div>
+                                        <small>Tag Position 1-4 (Any): Any String</small>
+                                    </div>
+                                </div>
+                                <hr/>
+                                <div className={"text-start"}>
+                                    <h6 className={"text-center"}>Pets</h6>
+                                    <small>"Pets"</small>
+                                    <div>
+                                        <small>Tag Position 0 (Type): Pets</small>
+                                    </div>
+                                    <div>
+                                        <small>Tag Position 1-4 (Any): Any String</small>
+                                    </div>
+                                </div>
+                                <hr/>
+                                <div className={"text-start"}>
+                                    <h6 className={"text-center"}>Food & Baking</h6>
+                                    <div>
+                                        <small>Tag Position 0 (Type): Food & Baking</small>
+                                    </div>
+                                    <div>
+                                        <small>Tag Position 1-4 (Any): Any String</small>
+                                    </div>
+                                </div>
+                                <hr/>
+                                <div className={"text-start"}>
+                                    <h6 className={"text-center"}>Gardening</h6>
+                                    <div>
+                                        <small>Tag Position 0 (Type): Gardening</small>
+                                    </div>
+                                    <div>
+                                        <small>Tag Position 1-4 (Any): Any String</small>
+                                    </div>
+                                </div>
+                                <hr/>
+                                <div className={"text-start"}>
+                                    <h6 className={"text-center"}>Travel</h6>
+                                    <div>
+                                        <small>Tag Position 0 (Type): Travel</small>
+                                    </div>
+                                    <div>
+                                        <small>Tag Position 1 (Trip Name): Maui Trip</small>
+                                    </div>
+                                    <div>
+                                        <small>Tag Position 2 (Location, Comma-Delimited): Maui, HI</small>
+                                    </div>
+                                    <div>
+                                        <small>Tag Position 3 (Trip Date, Space-Delimited): April 2023</small>
+                                    </div>
+                                </div>
+                                <hr/>
+                                <div className={"text-start"}>
+                                    <h6 className={"text-center"}>Video</h6>
+                                    <small>"Video"</small>
+                                </div>
+                            </fieldset>
                         </Form.Group>
                     </Col>
-                    <Col xs={12} md={4}>
+                    <Col xs={12} md={4} className={"pad"}>
+                        {
+                            !picture && (
+                                <div className={"mt-3 mb-3"}>
+                                    <Image ref={imgRefPlaceholder} src={`${Vivianite}`} thumbnail/>
+                                </div>
+                            )
+                        }
                         {
                             !!picture && (
                                 <div className={"mt-3 mb-3"}>
-                                    <Image ref={imgRef} src={`${imgData}`} thumbnail />
+                                    <Image ref={imgRef} src={`${imgData}`} thumbnail/>
                                 </div>
                             )
                         }
                     </Col>
-                    <Col xs={12} md={4}>
-                        {
+                    <Col xs={12} md={4} className={"pad"}>
+                    {
                             !!picture && (
                                 <div className={"mt-3 mb-3"}>
                                     <Row className={"text-start mt-4 mb-3"}>
@@ -279,7 +356,7 @@ export const AddPhoto = () => {
                                 </div>
                             )
                         }
-                        <Button variant={"primary"} className={"mt-3 mb-5"} type={"submit"} disabled={(tags.length === 0 || fileOverLimit || !isLoading)}>
+                        <Button variant={"primary"} className={"mt-3 mb-5 button-85"} type={"submit"} disabled={(tags.length === 0 || fileOverLimit || !isLoading)}>
                             Process Photo
                         </Button>
                         {

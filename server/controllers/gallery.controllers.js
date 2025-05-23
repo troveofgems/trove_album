@@ -20,7 +20,8 @@ import {uploadToProvider} from "../services/photo.provider.service.js";
 
 // @access Public
 export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
-    const cacheExists = false; //await probeForCache(req)
+    const cacheExists = await probeForCache(req);
+    console.log("Cache Exists?", cacheExists, req.query);
 
     // Cache Exists from Prior Call. Return Cache Instead of proceeding with request.
     if(cacheExists) return res
@@ -191,26 +192,3 @@ export const deletePhoto = asyncHandler(async (req, res, next) => {
             statusCode: 202
         });
 });
-
-// @access Public
-export const searchGalleryByKeyword = asyncHandler(async(req, res, next) => {
-    console.log("Inside Search Gallery By Keywords Controller: ", req.query);
-    const keywords = req.query.keywords ? {
-        name: {
-            $regex: req.query.keywords,
-            $options: "i"
-        }
-    } : {};
-
-    const docCount = await PhotoModel.countDocuments({...keywords});
-    const gallery = await PhotoModel.find({...keywords}, null, null);
-
-    console.log("Search Gallery By Keyword Filtering...", keywords, docCount, gallery);
-
-    console.log("Keywords: ", keywords);
-
-    return res.status(200).json({
-        data: gallery,
-        count: docCount
-    });
-})
