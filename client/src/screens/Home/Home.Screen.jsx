@@ -1,5 +1,5 @@
 import React from "react";
-import {GalleryView} from "../../components/Gallery/View/GalleryView";
+import {Album} from "../../components/Album/Album";
 import {useLocation, useOutletContext} from "react-router-dom";
 
 export const HomeScreen = () => {
@@ -7,7 +7,7 @@ export const HomeScreen = () => {
         { state: queryState } = useLocation(),
         { currentView } = useOutletContext();
 
-    return <GalleryView
+    return <Album
         viewingGallery={currentView}
         filters={queryState}
     />;

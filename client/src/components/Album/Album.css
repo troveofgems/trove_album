@@ -16,3 +16,7 @@
 }
 
 img {color:#fff}
+
+#galleryBanner {
+    justify-content: space-between!important;
+}

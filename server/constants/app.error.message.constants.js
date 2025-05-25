@@ -9,7 +9,7 @@ export const NOT_AUTHORIZED_TOKEN_VALIDATION_FAILURE = "Unauthorized: Token Vali
 export const INVALID_CREDENTIALS = "Invalid Credentials";
 export const NO_CREDENTIALS_SUPPLIED = "Please Supply an Email and/or Password";
 
-/** Gallery Messages */
+/** Album Messages */
 // DELETE CONSTANTS
 export const DELETE_DEFAULT_ERROR_MESSAGE = "Unable to Remove Photo From";
 export const DELETE_DEFAULT_SUCCESS_MESSAGE = "Photo Removed!";

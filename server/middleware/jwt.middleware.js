@@ -8,6 +8,24 @@ import {
     NOT_AUTHORIZED_NOT_ADMINISTRATOR
 } from "../constants/app.error.message.constants.js";
 
+// Attach User Data Route
+const attachUserData = asyncHandler(async (req, res, next) => {
+    let token = null;
+
+    token = req.cookies[`${process.env.JWT_COOKIE_NAME}`];
+
+    if(token) {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = !!decoded ? await UserModel
+            .findById(decoded.userId, null, null)
+            .select("-password") : null;
+        return next();
+    } else {
+        req.user = null;
+        return next();
+    }
+});
+
 // Protected Routes
 const protectRoute = asyncHandler(async (req, res, next) => {
     let token = null;
@@ -42,4 +60,4 @@ const enforceAdminPrivilege = (req, res, next) => {
     }
 }
 
-export { protectRoute, enforceAdminPrivilege };
+export { protectRoute, enforceAdminPrivilege, attachUserData };

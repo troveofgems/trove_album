@@ -20,30 +20,35 @@ import {uploadToProvider} from "../services/photo.provider.service.js";
 
 // @access Public
 export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
-    const cacheExists = await probeForCache(req);
-    console.log("Cache Exists?", cacheExists, req.query);
+    const cacheProbe = await probeForCache(req);
 
     // Cache Exists from Prior Call. Return Cache Instead of proceeding with request.
-    if(cacheExists) return res
-        .status(200)
-        .json(cacheExists);
+    if(cacheProbe.cacheFound) {
+        return res
+            .status(200)
+            .json({
+                data: cacheProbe.data,
+                fetchTS: markTimestamp(),
+                fromCache: cacheProbe.cacheFound,
+                cacheKey: cacheProbe.cacheKey
+            });
+    }
 
     const
-        excludePhotoKeys = "-download._id -captions._id -device._id -dimensions._id -gps._id -provider.deleteUrl";
+        excludePhotoKeys = "-download._id -captions._id -device._id -dimensions._id -gps._id -provider.deleteUrl",
+        { gallery, filterQuery } = await getGalleryTemplate(req.query.uiFetchSettings),
+        quotaOrMaxPageReached =  gallery.photos.fetchQuotaReached &&
+            gallery.photos.pagination.page > gallery.photos.pagination.maxPages;
 
-    const { gallery, filterQuery } = await getGalleryTemplate(req.query.uiFetchSettings);
-
-    if(
-        gallery.photos.fetchQuotaReached &&
-        gallery.photos.pagination.page > gallery.photos.pagination.maxPages
-    ) {
+    if(quotaOrMaxPageReached) {
         return res.status(200).json({
             data: gallery,
             fetchTS: markTimestamp(),
-            fromCache: cacheExists
+            fromCache: false
         });
     }
 
+    // Continue with Request and Process DB
     let
         processList = [],
         preprocessedPhotoList =
@@ -83,14 +88,17 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
     }
 
     // Set Cache
-    //await cacheResults(req, gallery);
+    if(!cacheProbe.cacheFound) { // Can this be background Processed?
+        await cacheResults(req, gallery, 500, cacheProbe.cacheKey);
+    }
 
     return res
         .status(200)
         .json({
             data: gallery,
             fetchTS: markTimestamp(),
-            fromCache: cacheExists
+            fromCache: false,
+            cacheKey: cacheProbe.cacheKey
         });
 });
 
@@ -168,7 +176,7 @@ export const updatePhoto = asyncHandler(async (req, res, next) => {
         });
     } else {
         res.status(400);
-        throw new Error('Unable to Update Gallery Photo');
+        throw new Error('Unable to Update Album Photo');
     }
 });
 

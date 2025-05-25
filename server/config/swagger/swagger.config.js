@@ -10,8 +10,8 @@ const
         swaggerDefinition: {
             openapi: "3.1.1",
             info: {
-                title: 'ToG Photo Gallery API',
-                description: 'Trove of Gems Photo Gallery API Documentation',
+                title: 'ToG Photo Album API',
+                description: 'Trove of Gems Photo Album API Documentation',
                 termsOfService: "",
                 contact: {
                     name: 'Dustin Greco',

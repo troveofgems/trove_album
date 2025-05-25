@@ -26,7 +26,7 @@ export const galleryApiSlice = apiSlice.injectEndpoints({
                     }
                 },
                 getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => {
-                    if (lastPage === undefined) return undefined;
+                    if (lastPage === undefined || lastPage.data === undefined) return undefined;
                     const nextPage = lastPageParam.page + 1;
                     const remainingPages = (Math.ceil(lastPage.data.photos.totalPhotoCount / lastPageParam.limit) - nextPage) + 1;
                     if (remainingPages <= 0) return undefined;
@@ -54,7 +54,12 @@ export const galleryApiSlice = apiSlice.injectEndpoints({
                     }
                 })
             },
-            /*transformResponse: (response) => response.data*/
+            keepUnusedDataFor: 1,
+            transformResponse: (response) => {
+                console.log("Transform Response? ", response);
+                return response;
+            },
+            providesTags: ['Photos']
         }),
         fetchPhotoById: builder.query({
            query: ({ photoId }) => ({

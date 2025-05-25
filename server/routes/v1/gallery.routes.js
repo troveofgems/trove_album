@@ -1,5 +1,5 @@
 import express from 'express';
-import { protectRoute, enforceAdminPrivilege } from "../../middleware/jwt.middleware.js";
+import {protectRoute, enforceAdminPrivilege, attachUserData} from "../../middleware/jwt.middleware.js";
 import {
     addPhoto,
     deletePhoto,
@@ -7,7 +7,7 @@ import {
     fetchPhotoById,
     updatePhoto
 } from "../../controllers/gallery.controllers.js";
-import {apiBenchmarkMiddleware} from "../../middleware/api.benchmark.middleware.js";
+//import {apiBenchmarkMiddleware} from "../../middleware/api.benchmark.middleware.js";
 
 
 const galleryRouter = express.Router();
@@ -19,8 +19,8 @@ galleryRouter
      * /v1/api/gallery/photos:
      *   get:
      *     tags:
-     *      - Photo Gallery
-     *     summary: Fetch Full Gallery
+     *      - Photo Album
+     *     summary: Fetch Full Album
      *     description: Fetches all photos from the gallery
      *     parameters:
      *       - in: query
@@ -69,7 +69,7 @@ galleryRouter
      *                      }
      *     responses:
      *       '200':
-     *         description: Gallery Fetched
+     *         description: Album Fetched
      *         content:
      *           application/json:
      *             schema:
@@ -109,23 +109,23 @@ galleryRouter
      *                   example: false
      *                   type: boolean
      *       '400':
-     *         description: Unable To Fetch Gallery
+     *         description: Unable To Fetch Album
      *       '404':
      *         description: Resource Not Found
      *       '500':
      *         description: Internal server error
      */
-    .get(fetchGalleryPhotos)
+    .get(attachUserData, fetchGalleryPhotos)
     /**
      * @swagger
      * /v1/api/gallery/photos:
      *   post:
      *     tags:
-     *      - Photo Gallery
-     *     summary: Add Photo To Gallery
-     *     description: Adds a Photo To The Gallery of Photos
+     *      - Photo Album
+     *     summary: Add Photo To Album
+     *     description: Adds a Photo To The Album of Photos
      *     requestBody:
-     *       description: Photo Request Object To Insert Into The Gallery
+     *       description: Photo Request Object To Insert Into The Album
      *       content:
      *         multipart/form-data:
      *           schema:
@@ -133,7 +133,7 @@ galleryRouter
      *           example:
      *     responses:
      *       '200':
-     *         description: Photo Created For Gallery
+     *         description: Photo Created For Album
      *       '400':
      *         description: Unable To Add Photo
      *       '404':
@@ -150,9 +150,9 @@ galleryRouter
      * /v1/api/gallery/photos/{id}:
      *   get:
      *     tags:
-     *      - Photo Gallery
-     *     summary: Fetch Photo By id From Photo Gallery
-     *     description: Fetches A Single Photo By Its id From The Photo Gallery
+     *      - Photo Album
+     *     summary: Fetch Photo By id From Photo Album
+     *     description: Fetches A Single Photo By Its id From The Photo Album
      *     parameters:
      *       - in: path
      *         name: id
@@ -180,9 +180,9 @@ galleryRouter
      * /v1/api/gallery/photos/{id}:
      *   put:
      *     tags:
-     *      - Photo Gallery
-     *     summary: Update Photo By id Within Photo Gallery
-     *     description: Updates A Single Photo By Its id From The Photo Gallery Using PUT Method
+     *      - Photo Album
+     *     summary: Update Photo By id Within Photo Album
+     *     description: Updates A Single Photo By Its id From The Photo Album Using PUT Method
      *     parameters:
      *       - in: path
      *         name: id
@@ -206,9 +206,9 @@ galleryRouter
      * /v1/api/gallery/photos/{id}:
      *   patch:
      *     tags:
-     *      - Photo Gallery
-     *     summary: Update Photo By id Within Photo Gallery
-     *     description: Updates A Single Photo By Its id From The Photo Gallery Using PATCH Method
+     *      - Photo Album
+     *     summary: Update Photo By id Within Photo Album
+     *     description: Updates A Single Photo By Its id From The Photo Album Using PATCH Method
      *     parameters:
      *       - in: path
      *         name: id
@@ -232,9 +232,9 @@ galleryRouter
      * /v1/api/gallery/photos/{id}:
      *   delete:
      *     tags:
-     *      - Photo Gallery
-     *     summary: Delete Photo By id Within Photo Gallery
-     *     description: Deletes a Photo By Its id From The Photo Gallery
+     *      - Photo Album
+     *     summary: Delete Photo By id Within Photo Album
+     *     description: Deletes a Photo By Its id From The Photo Album
      *     parameters:
      *       - in: path
      *         name: id
