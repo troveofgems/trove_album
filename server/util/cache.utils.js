@@ -11,6 +11,7 @@ export const probeForCache = async (req) => {
 
     if(cachingIsEnabled) {
         let cacheFound = await _fetchCache(req, constructedCacheKey);
+        console.log("CacheFound", cacheFound);
         return {
             cacheFound: true,
             data: JSON.parse(cacheFound),
@@ -18,7 +19,7 @@ export const probeForCache = async (req) => {
         }
     }
 
-    return { // Turn Off?
+    return {
         cacheFound: false,
         cacheKey: constructedCacheKey
     };
