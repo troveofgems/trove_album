@@ -23,7 +23,6 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
     const cacheProbe = await probeForCache(req);
 
     // Cache Exists from Prior Call. Return Cache Instead of proceeding with request.
-    console.log("CacheProbe: ", cacheProbe);
     if(cacheProbe.cacheFound && !!cacheProbe.data) {
         return res
             .status(200)
@@ -90,8 +89,7 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
 
     // Set Cache
     if(!cacheProbe.cacheFound && cacheProbe.data === null) { // Can this be background Processed?
-        console.log("Cache The Data: ", gallery.toString(), cacheProbe.cacheKey);
-        await cacheResults(req, gallery, 500, cacheProbe.cacheKey);
+        cacheResults(req, gallery, 500, cacheProbe.cacheKey);
     }
 
     return res
