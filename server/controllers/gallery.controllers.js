@@ -90,6 +90,7 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
 
     // Set Cache
     if(!cacheProbe.cacheFound) { // Can this be background Processed?
+        console.log("Cache The Data: ", gallery.toString(), cacheProbe.cacheKey);
         await cacheResults(req, gallery, 500, cacheProbe.cacheKey);
     }
 
