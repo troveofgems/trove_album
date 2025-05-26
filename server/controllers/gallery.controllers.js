@@ -23,7 +23,8 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
     const cacheProbe = await probeForCache(req);
 
     // Cache Exists from Prior Call. Return Cache Instead of proceeding with request.
-    if(cacheProbe.cacheFound) {
+    console.log("CacheProbe: ", cacheProbe);
+    if(cacheProbe.cacheFound && !!cacheProbe.data) {
         return res
             .status(200)
             .json({
