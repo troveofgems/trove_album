@@ -46,3 +46,17 @@ footer {
   margin: 0;
   visibility: hidden;
 }
+
+@media only screen and (max-width: 412px) {
+  #galleryBanner {
+    flex-direction: column!important;
+  }
+
+  .cacheWindow {
+    min-width: unset!important;
+  }
+
+  h2.text-white.mt-5.mb-5 {
+    margin-bottom: 0!important;
+  }
+}
