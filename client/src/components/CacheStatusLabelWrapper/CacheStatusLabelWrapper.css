@@ -30,11 +30,11 @@
 
 @media only screen and (max-width: 412px) {
     #galleryBanner {
-        flex-direction: column;
+        flex-direction: column!important;
     }
 
     .cacheWindow {
-        min-width: unset;
+        min-width: unset!important;
     }
 
     h2.text-white.mt-5.mb-5 {
