@@ -22,11 +22,32 @@ const photoTransformations = [
     (data, source) => setPhotoGPSData(data, source)
 ];
 
-export const formatPhotoForFrontEndConsumption = (sourceData, index, skip) => photoTransformations
-    .reduce((acc, transform) =>
-        transform(acc, sourceData, index, skip),
-        sourceData
+export const processGalleryPhotos = (gallery, processList) => {
+    gallery.photos.imageList.push(
+        ...processList
+            .map((sourceData, index) => formatPhotoForFrontEndConsumption(sourceData, index, 0))
     );
+    gallery.photos.pullCount = processList.length;
+
+    return gallery;
+};
+
+export const createMapForTravelPhotos = (gallery) => {
+    gallery.photos.imageList.forEach((image) => {
+        const locationTime = `${image.tags[image.tags.length - 1]} ${image.tags[image.tags.length - 2]}`;
+
+        // Add image to the appropriate group
+        if (!gallery.photos.groupMap.has(locationTime)) {
+            gallery.photos.groupMap.set(locationTime, []);
+        }
+
+        gallery.photos.groupMap.get(locationTime).push(image);
+    });
+
+    gallery.photos.groupMap = Object.fromEntries(gallery.photos.groupMap);
+
+    return gallery;
+};
 
 export const setFolderPath = (tagList, provider = ImageProviders.IMGBB) => {
     const folderInvoker = new FolderInvoker(provider);
@@ -44,6 +65,12 @@ export const setFolderPath = (tagList, provider = ImageProviders.IMGBB) => {
         status: "processing"
     }
 };
+
+export const formatPhotoForFrontEndConsumption = (sourceData, index, skip) => photoTransformations
+    .reduce((acc, transform) =>
+            transform(acc, sourceData, index, skip),
+        sourceData
+    );
 
 const createPhotoTemplate = (photo, sourceData) => ({
     ...sourceData._doc,

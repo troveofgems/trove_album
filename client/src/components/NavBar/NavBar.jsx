@@ -117,6 +117,9 @@ export const NavBar = ({ onViewChange, setIsHovering }) => {
                                     <Link to={"/site-filters-explanation"} className={"dropdown-item"}>
                                         About Site Filters
                                     </Link>
+                                    <Link to={"/analytics"} className={"dropdown-item"}>
+                                        Analytics
+                                    </Link>
                                     <NavDropdown.Item
                                         href={
                                             process.env.NODE_ENV === "development" ?

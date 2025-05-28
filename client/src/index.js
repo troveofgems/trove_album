@@ -1,14 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-/*import reportWebVitals from './reportWebVitals';*/
-import 'react-toastify/dist/ReactToastify.css';
-
-import { HelmetProvider, Helmet } from 'react-helmet-async';
-
 import { Provider } from 'react-redux';
 import store from './redux/store';
+/*import reportWebVitals from './reportWebVitals';*/
+
+import { HelmetProvider, Helmet } from 'react-helmet-async';
 
 import {
     createBrowserRouter,
@@ -17,23 +13,28 @@ import {
     RouterProvider,
 } from "react-router-dom";
 
-import {HomeScreen} from "./screens/Home/Home.Screen";
-import {LoginScreen} from "./screens/Login/Login.Screen";
-import {PhotoManagementScreen} from "./screens/PhotoManagement/PhotoManagement.screen";
+import './index.css';
 
+// Components & Constants
+import App from './App';
+import {Loader} from "./components/shared/Loader/Loader";
+import { SEO_SITE_URL, SEO_TITLE } from "./constants/seo.constants";
+
+// Routes
 import PrivateRoute from "./routes/private.route";
 import AdminRoute from "./routes/admin.route";
+
+// Screens
+import {HomeScreen} from "./screens/Home/Home.Screen";
+import {LoginScreen} from "./screens/Login/Login.Screen";
+import {Analytics} from "./screens/Analytics/Analytics";
+import {PhotoManagementScreen} from "./screens/PhotoManagement/PhotoManagement.screen";
 import {AddPhoto} from "./screens/PhotoManagement/AddPhoto/AddPhoto";
-import {Loader} from "./components/shared/Loader/Loader";
-import {
-    SEO_DESCRIPTION,
-    SEO_KEYWORDS, SEO_OG_IMG_REF,
-    SEO_OG_TYPE,
-    SEO_SITE_AUTHOR,
-    SEO_SITE_URL,
-    SEO_TITLE
-} from "./constants/seo.constants";
+import {UpdatePhoto} from "./screens/PhotoManagement/UpdatePhoto/UpdatePhoto";
 import {FiltersExplanation} from "./screens/FiltersExplanation/FiltersExplanation";
+
+// CSS
+import 'react-toastify/dist/ReactToastify.css';
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -44,13 +45,14 @@ const router = createBrowserRouter(
             <Route path={"/search/:keywords/page/:page"} element={<HomeScreen />} />
             <Route path={"/login"} element={<LoginScreen />} />
             <Route path={"/site-filters-explanation"} element={<FiltersExplanation />} />
+            <Route path={"/analytics"} element={<Analytics />} />
             <Route path={""} element={<PrivateRoute />}>
                 <Route path={"/favorites"} element={<Loader />} />
             </Route>
             <Route path={"/admin"} element={<AdminRoute />}>
                 <Route path={"/admin/photo-management"} element={<PhotoManagementScreen />} />
                 <Route path={"/admin/photo-management/addPhoto"} element={<AddPhoto />} />
-                <Route path={"/admin/photo-management/updatePhoto"} element={<AddPhoto />} />
+                <Route path={"/admin/resource-management/photos/:photoId"} element={<UpdatePhoto />} />
             </Route>
         </Route>
     )

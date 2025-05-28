@@ -2,7 +2,7 @@ import {toast} from "react-toastify";
 import {ZERO, ONE} from "../constants/frontend.constants";
 
 // Util Functions
-export const constructPhoto = (imgData, photoAltText, photoTitle, photoDescription, imgEXIFData, dimensions, customDownloadName, tags) => ({
+export const constructPhotoCreateTemplate = (imgData, photoAltText, photoTitle, photoDescription, imgEXIFData, dimensions, customDownloadName, tags) => ({
     src: imgData,
     captions: {
         alt: photoAltText,
@@ -28,6 +28,18 @@ export const constructPhoto = (imgData, photoAltText, photoTitle, photoDescripti
         latitude: imgEXIFData.gpsLatitude,
         longitude: imgEXIFData.gpsLongitude,
         altitude: imgEXIFData.gpsAltitude,
+    },
+    tags
+});
+
+export const constructPhotoUpdateTemplate = (photoAltText, photoTitle, photoDescription, customDownloadName, tags) => ({
+    captions: {
+        alt: photoAltText,
+        description: photoDescription,
+        title: photoTitle
+    },
+    download: {
+        filename: customDownloadName
     },
     tags
 });
@@ -89,13 +101,11 @@ export const handlePhotoDelete = async (photoId, deletePhoto, navigate) => {
     }
 };
 
-export const handlePhotoUpdate = (photoId, navigate) => navigate(`/photos/${photoId}`);
+export const handlePhotoUpdate = (photoId, navigate) => navigate(`/admin/resource-management/photos/${photoId}`);
 
 export const mapPhotoData = (rtkData) => {
-    console.log("Inside Map Photo Data: ", rtkData);
     if(!!rtkData) {
         return rtkData?.pages?.flatMap(page => page.data.photos.imageList);
     }
-    console.log("Inside Map Photo Data but No rtkData...", rtkData, "Returning []");
     return [];
 };

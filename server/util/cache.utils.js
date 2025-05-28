@@ -1,15 +1,18 @@
-const cachingIsEnabled = (process.env.NODE_ENV === 'production' || process.env.FORCE_CACHING === "true");
+// File Export Constants & Vars
+const
+    { APP_PREFIX_HIERARCHY, NODE_ENV, FORCE_CACHING} = process.env,
+    enforceCaching = ((NODE_ENV === "production") || FORCE_CACHING);
 
 // File Exports
 export const probeForCache = async (req) => {
     const
         uiFS = JSON.parse(req.query.uiFetchSettings),
-        viewEnum = getViewEnum(uiFS),
-        authEnum = getAuthEnum(req.user),
-        userEnum = getUserEnum(req.user),
-        constructedCacheKey = `app:alb:gly:${viewEnum}:${authEnum}:${userEnum}:${uiFS.page}`;
+        viewEnum = _getViewEnum(uiFS),
+        authEnum = _getAuthEnum(req.user),
+        userEnum = _getUserEnum(req.user),
+        constructedCacheKey = `${APP_PREFIX_HIERARCHY}${viewEnum}:${authEnum}:${userEnum}:${uiFS.page}`;
 
-    if(cachingIsEnabled) {
+    if(enforceCaching) {
         let cacheFound = await _fetchCache(req, constructedCacheKey);
         return {
             cacheFound: !!cacheFound,
@@ -19,17 +22,39 @@ export const probeForCache = async (req) => {
     }
 };
 export const cacheResults = async (req, dataToCache, expires = 1, cacheKey) => {
-    if(cachingIsEnabled) {
+    if(enforceCaching) {
         await req.app.redisClient.set(cacheKey, JSON.stringify(dataToCache));
     }
     return req;
 };
-export const deleteCache = (req, cacheKey) => {
-    return req.app.redisClient.del(cacheKey);
+export const deleteCache = async (req, cacheKeyHierarchy) => {
+    if(enforceCaching) {
+        let redisStream = req.app.redisClient.scanStream({
+            match: `${cacheKeyHierarchy}*`
+        });
+
+        redisStream.on("data", function (keys) {
+            if(keys.length) {
+                let pipeline = req.app.redisClient.pipeline();
+                keys.forEach(function(key) {
+                    pipeline.del(key);
+                });
+                pipeline.exec();
+            }
+        });
+
+        redisStream.on("end", function () {
+            if(NODE_ENV === "development") {
+                console.log("Redis Key Purge Completed!");
+            }
+        });
+    }
+    return req;
 };
 
 // Internal Helper Functions
-const getViewEnum = (viewEnum) => {
+const _fetchCache = async (req, cacheKey) => await req.app.redisClient.get(`${cacheKey}`);
+const _getViewEnum = (viewEnum) => {
     let value = null;
 
     switch(viewEnum.settings.filters.category) {
@@ -64,7 +89,7 @@ const getViewEnum = (viewEnum) => {
 
     return value;
 };
-const getAuthEnum = (user) => {
+const _getAuthEnum = (user) => {
     let value = null;
     if (!user) {
         value = "u";
@@ -73,7 +98,7 @@ const getAuthEnum = (user) => {
     }
     return value;
 };
-const getUserEnum = (user) => {
+const _getUserEnum = (user) => {
     let value = null;
     if (!user) {
         value = "otsu";
@@ -82,11 +107,3 @@ const getUserEnum = (user) => {
     }
     return value;
 };
-
-const _fetchCache = async (req, cacheKey) => await req.app.redisClient.get(`${cacheKey}`);
-const _setCacheArtifacts = async (cache) => {
-    return {
-        data: !!cache ? JSON.parse(cache) : null,
-        fromCache: !!cache
-    }
-}

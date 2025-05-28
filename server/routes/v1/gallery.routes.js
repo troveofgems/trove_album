@@ -1,14 +1,6 @@
 import express from 'express';
-import {protectRoute, enforceAdminPrivilege, attachUserData} from "../../middleware/jwt.middleware.js";
-import {
-    addPhoto,
-    deletePhoto,
-    fetchGalleryPhotos,
-    fetchPhotoById,
-    updatePhoto
-} from "../../controllers/gallery.controllers.js";
-//import {apiBenchmarkMiddleware} from "../../middleware/api.benchmark.middleware.js";
-
+import { attachUserData } from "../../middleware/jwt.middleware.js";
+import { fetchGalleryPhotos, fetchPhotoById } from "../../controllers/gallery.controllers.js";
 
 const galleryRouter = express.Router();
 
@@ -19,7 +11,7 @@ galleryRouter
      * /v1/api/gallery/photos:
      *   get:
      *     tags:
-     *      - Photo Album
+     *      - Photo Album - Public
      *     summary: Fetch Full Album
      *     description: Fetches all photos from the gallery
      *     parameters:
@@ -115,33 +107,7 @@ galleryRouter
      *       '500':
      *         description: Internal server error
      */
-    .get(attachUserData, fetchGalleryPhotos)
-    /**
-     * @swagger
-     * /v1/api/gallery/photos:
-     *   post:
-     *     tags:
-     *      - Photo Album
-     *     summary: Add Photo To Album
-     *     description: Adds a Photo To The Album of Photos
-     *     requestBody:
-     *       description: Photo Request Object To Insert Into The Album
-     *       content:
-     *         multipart/form-data:
-     *           schema:
-     *             $ref: '#/components/schemas/photo'
-     *           example:
-     *     responses:
-     *       '200':
-     *         description: Photo Created For Album
-     *       '400':
-     *         description: Unable To Add Photo
-     *       '404':
-     *         description: Resource Not Found
-     *       '500':
-     *         description: Internal Server Error
-     */
-    .post(protectRoute, enforceAdminPrivilege, addPhoto);
+    .get(attachUserData, fetchGalleryPhotos);
 
 galleryRouter
     .route("/photos/:id")
@@ -150,7 +116,7 @@ galleryRouter
      * /v1/api/gallery/photos/{id}:
      *   get:
      *     tags:
-     *      - Photo Album
+     *      - Photo Album - Public
      *     summary: Fetch Photo By id From Photo Album
      *     description: Fetches A Single Photo By Its id From The Photo Album
      *     parameters:
@@ -174,86 +140,6 @@ galleryRouter
      *       '500':
      *         description: Internal server error
      */
-    .get(fetchPhotoById)
-    /**
-     * @swagger
-     * /v1/api/gallery/photos/{id}:
-     *   put:
-     *     tags:
-     *      - Photo Album
-     *     summary: Update Photo By id Within Photo Album
-     *     description: Updates A Single Photo By Its id From The Photo Album Using PUT Method
-     *     parameters:
-     *       - in: path
-     *         name: id
-     *         schema:
-     *           type: string
-     *         required: true
-     *         description: Photo ID
-     *     responses:
-     *       '200':
-     *         description: Photo Updated
-     *       '400':
-     *         description: Unable To Update Photo
-     *       '404':
-     *         description: Resource Not Found
-     *       '500':
-     *         description: Internal server error
-     */
-    .put(protectRoute, enforceAdminPrivilege, updatePhoto)
-    /**
-     * @swagger
-     * /v1/api/gallery/photos/{id}:
-     *   patch:
-     *     tags:
-     *      - Photo Album
-     *     summary: Update Photo By id Within Photo Album
-     *     description: Updates A Single Photo By Its id From The Photo Album Using PATCH Method
-     *     parameters:
-     *       - in: path
-     *         name: id
-     *         schema:
-     *           type: string
-     *         required: true
-     *         description: Photo ID
-     *     responses:
-     *       '200':
-     *         description: Photo Updated
-     *       '400':
-     *         description: Unable To Update Photo
-     *       '404':
-     *         description: Resource Not Found
-     *       '500':
-     *         description: Internal server error
-     */
-    .patch(protectRoute, enforceAdminPrivilege, updatePhoto)
-    /**
-     * @swagger
-     * /v1/api/gallery/photos/{id}:
-     *   delete:
-     *     tags:
-     *      - Photo Album
-     *     summary: Delete Photo By id Within Photo Album
-     *     description: Deletes a Photo By Its id From The Photo Album
-     *     parameters:
-     *       - in: path
-     *         name: id
-     *         schema:
-     *           type: string
-     *         required: true
-     *         description: Photo ID
-     *     responses:
-     *       '200':
-     *         description: Photo Deleted
-     *       '400':
-     *         description: Unable To Delete Photo
-     *       '403':
-     *         description: Forbidden - Access Not Granted
-     *       '404':
-     *         description: Resource Not Found
-     *       '500':
-     *         description: Internal server error
-     */
-    .delete(protectRoute, enforceAdminPrivilege, deletePhoto);
+    .get(fetchPhotoById);
 
 export default galleryRouter;

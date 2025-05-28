@@ -46,7 +46,8 @@ export const PhotoManagementScreen = () => {
         <>
             <h2 className={"text-center text-white mt-5"}>Resource Management</h2>
             <div className={"d-flex justify-content-end mt-5 mb-3"}>
-                <Link className={"btn button-85"} to={"/admin/photo-management/addPhoto"} role={"button"}>Add Photo To Gallery</Link>
+                <Link className={"btn button-85 mx-5"} to={"/admin/photo-management/addPhoto"} role={"button"}>Add Photo To Gallery</Link>
+                <Link className={"btn button-85"} to={"/admin/video-management/addVideo"} role={"button"}>Add Video To Gallery</Link>
             </div>
             <Table id={"tableData"} variant={"responsive"} striped={true} hover={true} className={"mt-5 mb-5"}>
                 <thead>
@@ -96,7 +97,7 @@ export const PhotoManagementScreen = () => {
                                             as="input"
                                             type="button"
                                             value="Edit"
-                                            onClick={() => handlePhotoUpdate(photo._id)}
+                                            onClick={() => handlePhotoUpdate(photo._id, navigate)}
                                         />
                                     </div>
                                     <div>

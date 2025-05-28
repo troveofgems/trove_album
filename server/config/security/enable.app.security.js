@@ -20,8 +20,8 @@ export const enableApplicationSecurity = (app) => {
             styleSrc: [
                 "'self'",
                 'https://fonts.googleapis.com',
-                'https://cdn.jsdelivr.net',  // Swagger UI CDN
-                'https://cdnjs.cloudflare.com', // Swagger UI CDN
+                'https://cdn.jsdelivr.net',
+                'https://cdnjs.cloudflare.com',
                 'http://www.w3.org/2000/svg',
                 'data:image/svg+xml',
                 'http://www.w3.org/2000/svg',
@@ -31,29 +31,38 @@ export const enableApplicationSecurity = (app) => {
                 "'self'",
                 'https://fonts.googleapis.com',
                 'https://cdn.jsdelivr.net',
-                'https://cdnjs.cloudflare.com', // Swagger UI CDN
+                'https://cdn.jsdelivr.net/npm/flotr2@0.1.0/flotr2.min.js',
+                'https://cdnjs.cloudflare.com',
                 'http://www.w3.org/2000/svg',
                 'http://www.w3.org/1999/xlink',
                 'data:image/svg+xml',
                 'http://www.w3.org/2000/svg',
                 "'unsafe-inline'"
             ],
-            styleSrcAttr: [  // Add this directive
+            styleSrcAttr: [
                 "'self'",
                 'https://fonts.googleapis.com',
                 'https://cdn.jsdelivr.net',
-                'https://cdnjs.cloudflare.com', // Swagger UI CDN
+                'https://cdnjs.cloudflare.com',
                 'http://www.w3.org/2000/svg',
                 'http://www.w3.org/1999/xlink',
                 'data:image/svg+xml',
                 'http://www.w3.org/2000/svg',
+                "'unsafe-inline'"
+            ],
+            scriptSrcElem: [
+                "'self'",
+                'https://fonts.googleapis.com',
+                'https://cdn.jsdelivr.net',
+                'https://cdn.jsdelivr.net/npm/flotr2@0.1.0/flotr2.min.js',
                 "'unsafe-inline'"
             ],
             scriptSrc: [
                 "'self'",
                 'https://fonts.googleapis.com',
                 'https://cdn.jsdelivr.net',
-                'https://cdnjs.cloudflare.com', // Swagger UI CDN
+                'https://cdn.jsdelivr.net/npm/flotr2@0.1.0/flotr2.min.js',
+                'https://cdnjs.cloudflare.com',
                 'http://www.w3.org/2000/svg',
                 'http://www.w3.org/1999/xlink',
                 'data:image/svg+xml',
@@ -70,7 +79,7 @@ export const enableApplicationSecurity = (app) => {
                 'https://i.ibb.co',
                 'data:'
             ]
-        },
+        }
     };
 
 

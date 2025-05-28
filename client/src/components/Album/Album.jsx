@@ -20,7 +20,7 @@ export const Album = ({ viewingGallery, filters }) => {
     const
         [showLightbox, setShowLightbox] = useState(false),
         [lightboxPhotos, setLightboxPhotos] = useState([]),
-        [lightboxSpotlightIndex, setLightboxSpotlightIndex] = useState(0),
+        [lightboxSpotlightIndex, setLightboxSpotlightIndex] = useState(ZERO),
         [enableInfiniteScroll, setEnableInfiniteScroll] = useState(false); // TODO: Build Frontend Checkbox Control To Enable/Disable Infinite Scroller
 
     const handleServerDataUpdate = (result) => {
@@ -144,7 +144,7 @@ export const Album = ({ viewingGallery, filters }) => {
     );
 
     return (
-        <div className={"text-start"}>
+        <div className={"text-start mb-5"}>
             <div id={"galleryBanner"} className={"d-flex"}>
                 <h2 className={"text-white mt-5 mb-5"}>
                     {viewingGallery === "All Items" ? "Full " : viewingGallery} Gallery

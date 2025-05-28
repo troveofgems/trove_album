@@ -24,23 +24,27 @@ export const MasonryPhotoAlbumShell = ({
     overrideBreakpoints = null,
     rtkData = null,
     overrideRTKData = false
-}) => (<MasonryPhotoAlbum
-    photos={overrideRTKData ? photos : mapPhotoData(rtkData)}
-    columns={columns}
-    breakpoints={overrideBreakpoints || initialBreakpoints}
-    sizes={overridePhotoSizes || initialPhotoSizes}
-    render={{
-        image: (props, { photo, index }) => (
-            <img
-                src={props.src}
-                alt={props.alt}
-                title={props.title}
-                height={"100%"}
-                width={"100%"}
-                className={"link"}
-                onClick={evt => openLightbox(evt)}
-                key={`masonry_tile_${photo.uniqueKey}_${index}`}
-            />
-        )
-    }}
-/>);
+}) => (
+    <div className={"pb-5"}>
+        <MasonryPhotoAlbum
+            photos={overrideRTKData ? photos : mapPhotoData(rtkData)}
+            columns={columns}
+            breakpoints={overrideBreakpoints || initialBreakpoints}
+            sizes={overridePhotoSizes || initialPhotoSizes}
+            render={{
+                image: (props, { photo, index }) => (
+                    <img
+                        src={props.src}
+                        alt={props.alt}
+                        title={props.title}
+                        height={"100%"}
+                        width={"100%"}
+                        className={"link"}
+                        onClick={evt => openLightbox(evt)}
+                        key={`masonry_tile_${photo.uniqueKey}_${index}`}
+                    />
+                )
+            }}
+        />
+    </div>
+);
