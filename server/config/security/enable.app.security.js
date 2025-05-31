@@ -75,6 +75,7 @@ export const enableApplicationSecurity = (app) => {
             ],
             imgSrc: [
                 "'self'",
+                'https://vod.api.video',
                 'https://res.cloudinary.com',
                 'https://i.ibb.co',
                 'data:'
