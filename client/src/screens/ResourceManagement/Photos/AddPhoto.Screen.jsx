@@ -8,14 +8,14 @@ import {FormContainer} from "../../../components/shared/FormContainer/FormContai
 import {TagField} from "../../../components/shared/TagField/TagField";
 import useTags from "../../../hooks/useTag.hook";
 import {useNavigate} from "react-router-dom";
-import {useAddPhotoMutation} from "../../../redux/slices/gallery.api.slice";
+import {useAddPhotoMutation} from "../../../redux/slices/photo.api.slice";
 import {constructPhotoCreateTemplate} from "../../../utils/photo.utils";
 
 import Vivianite from "../../../assets/images/logos/vivianite-placeholder-1.jpg";
 
-import "./AddPhoto.css";
+import "./PhotoManagement.css";
 
-export const AddPhoto = () => {
+export const AddPhotoScreen = () => {
     const
         UNKNOWN_MARKER = 'Unknown',
         MAX_TAGS = 5;
@@ -135,13 +135,14 @@ export const AddPhoto = () => {
             <Form onSubmit={handleSendPhotoToServer} className={"mb-5"}>
                 <Row>
                     <Col xs={12} md={4} className={"doublePad text-start"}>
-                        <Form.Group controlid={"imageUpload"}>
+                        <Form.Group controlid={"imageUpload"} className={"button-85"}>
                             <Form.Label column={true} className={"text-white"}>Upload Image</Form.Label>
                             <Form.Control
                                 type="file"
                                 accept="image/*"
                                 placeholder={"Image"}
                                 onChange={onUploadImage}
+                                className={"button-85"}
                             >
                             </Form.Control>
                         </Form.Group>
@@ -257,7 +258,7 @@ export const AddPhoto = () => {
                     <Col xs={12} md={4} className={"pad"}>
                         {
                             !picture && (
-                                <div className={"mt-3 mb-3"}>
+                                <div className={"mt-3 mb-3 text-center"}>
                                     <Image ref={imgRefPlaceholder} src={`${Vivianite}`} thumbnail />
                                 </div>
                             )

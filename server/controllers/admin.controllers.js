@@ -1,10 +1,12 @@
 import mongoose from "mongoose";
+import {spawn} from "node:child_process";
 
 // Middleware
 import { asyncHandler } from "../middleware/asyncHandler.middleware.js";
 
 // Models & Classes
 import PhotoModel from "../db/models/photo.model.js";
+import VideoModel from "../db/models/video.model.js";
 import { Photo } from "../classes/gallery.classes.js";
 
 // Services
@@ -16,9 +18,15 @@ import { deleteCache } from "../util/cache.utils.js";
 import { getGalleryTemplate } from "../util/filter.utils.js";
 import { markTimestamp } from "../util/time.utils.js";
 import { sendResponse } from "./send.controller.utils.js";
+import {convertToMp4} from "../util/video.utils.js";
+import {getAbsolutePath_VideoStorage} from "../config/multer/config.js";
+import {uploadVideoToAPIVideo} from "../services/api.video.service.js";
 
 const { APP_PREFIX_HIERARCHY } = process.env;
 
+/**
+ * Photo Controllers
+ * */
 // @access Private
 export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
     const
@@ -149,3 +157,99 @@ const _updatePhotoShell = async (req, res, updates, type) => {
         throw new Error('Unable to Update Album Photo');
     }
 };
+
+/**
+ * Video Controllers
+ * */
+// @access Private
+export const addVideo = asyncHandler(async (req, res, next) => {
+    // Convert Movies to Mp4 If Not Already in that Format
+    if(req.locals.requiresConversion) {
+       // await convertToMp4(req, req.locals.uploadedFilename, getAbsolutePath_VideoStorage());
+    }
+
+    const videoCreationPayload = {
+        title: req.body.title,
+        description: req.body.description,
+        public: req.body.public === "true",
+        panoramic: req.body.panoramic === "true",
+        mp4Support: true, // Hardcode this as all videos will be converted to mp4
+        playerId: process.env.API_VIDEO_PLAYER_ID,
+        language: "en", // Hardcode this for now
+        transcript: req.body.transcript === "true",
+        transcriptSummary: req.body.transcript === "true",
+        tags: typeof req.body.tags === "string" ? req.body.tags.split(",") : req.body.tags,
+        metadata: [
+            {
+                "key": "Uploader",
+                "value": `${req.user.firstName} ${req.user.lastName}`
+            },
+            {
+                "key": "Description",
+                "value": `Video - `
+            },
+            {
+                "key": "Start Time",
+                "value": `${req.locals.metadataToSave.information.container.start_time}`
+            },
+            {
+                "key": "Duration",
+                "value":  `${req.locals.metadataToSave.information.container.duration}`
+            },
+            {
+                "key": "Size",
+                "value":  `${req.locals.metadataToSave.information.container.size}`
+            },
+            {
+                "key": "Bit Rate",
+                "value":  `${req.locals.metadataToSave.information.container.bit_rate}`
+            },
+            {
+                "key": "Nat Height",
+                "value":  `${req.locals.metadataToSave.information.height}`
+            },
+            {
+                "key": "Nat Width",
+                "value":  `${req.locals.metadataToSave.information.width}`
+            }
+        ]
+    };
+
+    // Attach Transcript Summary Attributes if they Exist
+    if(req.body.transcript === "true") {
+        videoCreationPayload.transcriptSummaryAttributes = req.body.transcriptSummaryAttributes.split(",");
+    }
+
+    // create a video object first
+    const videoProcessed = null; //await uploadVideoToAPIVideo(req.locals.convertedFilePath, videoCreationPayload);
+
+    let videoToStore = {
+        title: req.body.title,
+        description: req.body.description,
+        provider: {
+            ...videoProcessed
+        },
+        user: req.user._id
+    }
+
+    videoToStore.provider.name = process.env.DEFAULT_VIDEO_PROCESSOR;
+
+    try {
+
+        const storedVideo = null; // await VideoModel.create(videoToStore);
+        console.log(storedVideo);
+
+        return sendResponse(
+            res,
+            202,
+            {},
+            false,
+            "",
+            200,
+            "Video Accepted For Processing!"
+        );
+    } catch(err) {
+        console.error(err);
+        return next(err);
+    }
+});

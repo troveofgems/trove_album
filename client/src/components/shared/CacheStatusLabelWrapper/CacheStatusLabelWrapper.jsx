@@ -1,41 +1,33 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 
 import {
     showAllResourcesLoadedMessage,
     showErrorMessage, showLoadingResourcesMessage,
     showNoResourcesLoadedMessage
-} from "../Album/LoadMessages/LoadMessages";
+} from "../../Album/LoadMessages/LoadMessages";
 
 import "./CacheStatusLabelWrapper.css";
-export const CacheStatusLabelWrapper = ({ infinitePhotoData, error, isLoading, isFetching }) => {
+export const CacheStatusLabelWrapper = ({ data, error, isLoading, isFetching, cacheItem }) => {
     const
         renderMessage = (ipd, type) => {
-            console.log("Render Message: ", ipd, type);
-            if(type === "rcs" && !!ipd) {
-                console.log("Inside Type: RCS")
-                return (ipd?.pages[ipd?.pages?.length - 1].fromCache === true) ?
+            if(type === "rcs" && cacheItem === "Photos" && !!ipd && !!ipd.pages) {
+                return (ipd.pages[ipd.pages.length - 1].fromCache === true) ?
                     (
                         <span className={"text-success cacheOn"}>ON</span>
                     ) : (
                         <span className={"text-danger cacheOff"}>OFF</span>
                     )
-            } else if (type === "rtc" && !!ipd) {
-                console.log("Inside Type: RTC")
+            } else if (type === "rtc" && cacheItem === "Photos" && !!ipd && !!ipd.pages) {
                 return ipd?.pages.length > 0 ? (
                         <span className={"text-success cacheOn"}>ON</span>
                     ) : (
                         <span className={"text-danger cacheOff"}>OFF</span>
                     )
+            } else {
+                return <span className={"text-danger cacheOff"}>OFF</span>;
             }
         }
 
-    useEffect(() => {
-        console.log("Fix ", infinitePhotoData);
-        let test = !!infinitePhotoData;
-        console.log("IPD Exists? ", test);
-    }, [infinitePhotoData]);
-
-    console.log("infinitePhotoData from cache wrapper? ", infinitePhotoData);
     return (
         <div className={"text-white mt-5 mb-5 button-85 cacheWindow"}>
             <div className={"rcsMessage p-0 text-log"}>
@@ -45,8 +37,8 @@ export const CacheStatusLabelWrapper = ({ infinitePhotoData, error, isLoading, i
                             RCS:
                             <span className={"flex-column"}>
                         {
-                            !!infinitePhotoData &&
-                            renderMessage(infinitePhotoData, "rcs")
+                            !!data &&
+                            renderMessage(data, "rcs")
                         }
                     </span>
                             <br/>
@@ -63,8 +55,8 @@ export const CacheStatusLabelWrapper = ({ infinitePhotoData, error, isLoading, i
                             RTC:
                             <span className={"flex-column"}>
                             {
-                                !!infinitePhotoData &&
-                                renderMessage(infinitePhotoData, "rtc")
+                                !!data &&
+                                renderMessage(data, "rtc")
                             }
                             </span>
                             <br/>
@@ -74,11 +66,11 @@ export const CacheStatusLabelWrapper = ({ infinitePhotoData, error, isLoading, i
                     <hr/>
                     <div className={"col-12"}>
                         {
-                            showNoResourcesLoadedMessage(infinitePhotoData)
+                            showNoResourcesLoadedMessage(data)
                         }
                         {
-                            !!infinitePhotoData ?
-                                showAllResourcesLoadedMessage(infinitePhotoData) :
+                            !!data ?
+                                showAllResourcesLoadedMessage(data) :
                                 showErrorMessage(error)
                         }
                         {

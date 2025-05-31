@@ -6,18 +6,20 @@ import {Link, useNavigate} from "react-router-dom";
 import Pagination from "../../components/shared/Pagination/Pagination";
 
 // RTK API Functions
-import { useFetchPhotosForManagementQuery } from "../../redux/slices/gallery.api.slice";
-import { useDeletePhotoMutation } from "../../redux/slices/gallery.api.slice";
+import {
+    useFetchPhotosForManagementQuery,
+    useDeletePhotoMutation
+} from "../../redux/slices/photo.api.slice";
 
 // Utils & Constants
 import {ONE, FIVE, TEN, TWENTY} from "../../constants/frontend.constants";
 import {changeDefaultPageSize, handlePhotoDelete, handlePhotoUpdate} from "../../utils/photo.utils";
 
 // CSS Imports
-import "./PhotoManagement.Screen.css";
+import "./ResourceManagement.Screen.css";
 import classnames from "classnames";
 
-export const PhotoManagementScreen = () => {
+export const ResourceManagementScreen = () => {
     const // Component State
         DefaultPageSize = TEN,
         itemsPerPageCommands = [ONE, FIVE, TEN, TWENTY],
@@ -46,8 +48,8 @@ export const PhotoManagementScreen = () => {
         <>
             <h2 className={"text-center text-white mt-5"}>Resource Management</h2>
             <div className={"d-flex justify-content-end mt-5 mb-3"}>
-                <Link className={"btn button-85 mx-5"} to={"/admin/photo-management/addPhoto"} role={"button"}>Add Photo To Gallery</Link>
-                <Link className={"btn button-85"} to={"/admin/video-management/addVideo"} role={"button"}>Add Video To Gallery</Link>
+                <Link className={"btn button-85 mx-5"} to={"/admin/resource-management/photos/addPhoto"} role={"button"}>Add Photo To Gallery</Link>
+                <Link className={"btn button-85"} to={"/admin/resource-management/videos/addVideo"} role={"button"}>Add Video To Gallery</Link>
             </div>
             <Table id={"tableData"} variant={"responsive"} striped={true} hover={true} className={"mt-5 mb-5"}>
                 <thead>

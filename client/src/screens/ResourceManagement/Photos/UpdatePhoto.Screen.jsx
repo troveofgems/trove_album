@@ -9,12 +9,12 @@ import {
     useFetchPhotoByIdQuery,
     useUpdatePhotoMutation,
     useUpdatePhotoWithPatchMutation,
-} from "../../../redux/slices/gallery.api.slice";
+} from "../../../redux/slices/photo.api.slice";
 import {TagField} from "../../../components/shared/TagField/TagField";
 import {constructPhotoUpdateTemplate} from "../../../utils/photo.utils";
 import useTags from "../../../hooks/useTag.hook";
 
-export const UpdatePhoto = () => {
+export const UpdatePhotoScreen = () => {
     const
         navigate = useNavigate(),
         [makePatchCall, setMakePatchCall] = useState(false),

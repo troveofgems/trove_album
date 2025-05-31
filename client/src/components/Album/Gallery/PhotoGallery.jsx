@@ -3,7 +3,7 @@ import {InfiniteScrollShell} from "../../InfiniteScrollShell/InfiniteScrollShell
 import {getTripDate, getTripLocation, getTripName} from "../../../utils/photo.utils";
 import {MasonryPhotoAlbumShell} from "../../MasonryPhotoAlbumShell/MasonryPhotoAlbumShell";
 
-export const Gallery = ({
+export const PhotoGallery = ({
                             viewingGallery,
                             infinitePhotoData,
                             handleFetchMorePhotos,
@@ -20,7 +20,7 @@ export const Gallery = ({
     return TopGallery(infinitePhotoData, handleFetchMorePhotos, handleOpenLightbox, isLoading, isFetching);
 }
 
-// For All Categories other than Travel
+// For All Categories other than Travel or Video
 const TopGallery = (infinitePhotoData, handleFetchMorePhotos, handleOpenLightbox, isLoading, isFetching) => (
     <InfiniteScrollShell
         photos={infinitePhotoData}

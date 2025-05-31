@@ -1,7 +1,7 @@
-import {ADMIN_URL, GALLERY_URL} from "../../constants/frontend.constants";
+import {ADMIN_URL, PHOTO_GALLERY_URL} from "../../constants/frontend.constants";
 import {apiSlice} from "./api.slice";
 
-export const galleryApiSlice = apiSlice.injectEndpoints({
+export const photoApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         fetchPhotosForManagement: builder.query({
             query: () => ({
@@ -48,7 +48,7 @@ export const galleryApiSlice = apiSlice.injectEndpoints({
             },
             query: ({ queryArg, pageParam }) => {
                 return ({
-                    url: `${GALLERY_URL}`,
+                    url: `${PHOTO_GALLERY_URL}`,
                     params: {
                         uiFetchSettings: JSON.stringify(pageParam),
                     }
@@ -62,9 +62,9 @@ export const galleryApiSlice = apiSlice.injectEndpoints({
             providesTags: ['Photos']
         }),
         fetchPhotoById: builder.query({
-           query: ({ photoId }) => ({
-               url: `${GALLERY_URL}/${photoId}`
-           }) ,
+            query: ({ photoId }) => ({
+                url: `${PHOTO_GALLERY_URL}/${photoId}`
+            }) ,
             keepUnusedDataFor: 5
         }),
         addPhoto: builder.mutation({
@@ -97,7 +97,7 @@ export const galleryApiSlice = apiSlice.injectEndpoints({
                 method: "DELETE"
             }),
             invalidatesTags: ["Photos"]
-        }),
+        })
     })
 });
 
@@ -108,7 +108,7 @@ export const {
     useAddPhotoMutation,
     useUpdatePhotoMutation,
     useUpdatePhotoWithPatchMutation,
-    useDeletePhotoMutation,
-} = galleryApiSlice;
+    useDeletePhotoMutation
+} = photoApiSlice;
 
-export default galleryApiSlice.reducer;
+export default photoApiSlice.reducer;

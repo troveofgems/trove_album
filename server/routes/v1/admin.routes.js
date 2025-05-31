@@ -4,16 +4,21 @@ import {
     fetchGalleryPhotos,
     addPhoto,
     updatePhotoUsingPut, updatePhotoUsingPatch,
-    deletePhoto
+    deletePhoto, addVideo
 } from "../../controllers/admin.controllers.js";
+import {uploadWithMulter} from "../../middleware/multer.middleware.js";
+import {scanForViruses} from "../../middleware/virus.scanner.middleware.js";
 
-const galleryRouter = express.Router();
+const adminRouter = express.Router();
 
-galleryRouter
+/**
+ * Photo Management Routes
+ * */
+adminRouter
     .route("/resource-management")
     .get(protectRoute, enforceAdminPrivilege, fetchGalleryPhotos);
 
-galleryRouter
+adminRouter
     .route("/resource-management/photos")
     /**
      * @swagger
@@ -42,7 +47,7 @@ galleryRouter
      */
     .post(protectRoute, enforceAdminPrivilege, addPhoto);
 
-galleryRouter
+adminRouter
     .route("/resource-management/photos/:id")
     /**
      * @swagger
@@ -125,4 +130,40 @@ galleryRouter
      */
     .delete(protectRoute, enforceAdminPrivilege, deletePhoto);
 
-export default galleryRouter;
+/**
+ * Video Management Routes
+ * */
+adminRouter
+    .route("/resource-management/videos")
+    /**
+     * @swagger
+     * /v1/api/admin/resource-management/photos:
+     *   post:
+     *     tags:
+     *      - Photo Album - Admin
+     *     summary: Add Photo To Album
+     *     description: Adds a Photo To The Album of Photos
+     *     requestBody:
+     *       description: Photo Request Object To Insert Into The Album
+     *       content:
+     *         multipart/form-data:
+     *           schema:
+     *             $ref: '#/components/schemas/photo'
+     *           example:
+     *     responses:
+     *       '200':
+     *         description: Photo Created For Album
+     *       '400':
+     *         description: Unable To Add Photo
+     *       '404':
+     *         description: Resource Not Found
+     *       '500':
+     *         description: Internal Server Error
+     */
+    .post(protectRoute, enforceAdminPrivilege, uploadWithMulter.single("video"), scanForViruses, addVideo);
+
+/**
+ * User Management Routes
+ * */
+
+export default adminRouter;

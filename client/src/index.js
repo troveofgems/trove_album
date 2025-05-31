@@ -25,13 +25,21 @@ import PrivateRoute from "./routes/private.route";
 import AdminRoute from "./routes/admin.route";
 
 // Screens
+    // Home - Public
 import {HomeScreen} from "./screens/Home/Home.Screen";
-import {LoginScreen} from "./screens/Login/Login.Screen";
-import {Analytics} from "./screens/Analytics/Analytics";
-import {PhotoManagementScreen} from "./screens/PhotoManagement/PhotoManagement.screen";
-import {AddPhoto} from "./screens/PhotoManagement/AddPhoto/AddPhoto";
-import {UpdatePhoto} from "./screens/PhotoManagement/UpdatePhoto/UpdatePhoto";
-import {FiltersExplanation} from "./screens/FiltersExplanation/FiltersExplanation";
+    // Auth - Public
+import {LoginScreen} from "./screens/Auth/Login.Screen";
+    // Admin - Private
+import {ResourceManagementScreen} from "./screens/ResourceManagement/ResourceManagement.Screen";
+import {AddPhotoScreen} from "./screens/ResourceManagement/Photos/AddPhoto.Screen";
+import {UpdatePhotoScreen} from "./screens/ResourceManagement/Photos/UpdatePhoto.Screen";
+import {AddVideoScreen} from "./screens/ResourceManagement/Videos/AddVideo.Screen";
+import {UpdateVideoScreen} from "./screens/ResourceManagement/Videos/UpdateVideo.Screen";
+    // Video - Public
+import {VideoScreen} from "./screens/Video/Video.Screen";
+    // About Pages - Public
+import {Analytics} from "./screens/About/Analytics/Analytics";
+import {FiltersExplanation} from "./screens/About/FiltersExplanation/FiltersExplanation";
 
 // CSS
 import 'react-toastify/dist/ReactToastify.css';
@@ -43,17 +51,24 @@ const router = createBrowserRouter(
             <Route path={"/page/:page"} element={<HomeScreen />} />
             <Route path={"/search"} element={<HomeScreen />} />
             <Route path={"/search/:keywords/page/:page"} element={<HomeScreen />} />
-            <Route path={"/login"} element={<LoginScreen />} />
-            <Route path={"/site-filters-explanation"} element={<FiltersExplanation />} />
-            <Route path={"/analytics"} element={<Analytics />} />
+            <Route path={"/auth"}>
+                <Route path={"/auth/login"} element={<LoginScreen />} />
+            </Route>
+            <Route path={"/about"}>
+                <Route path={"/about/analytics"} element={<Analytics />} />
+                <Route path={"/about/site-filters-explanation"} element={<FiltersExplanation />} />
+            </Route>
             <Route path={""} element={<PrivateRoute />}>
                 <Route path={"/favorites"} element={<Loader />} />
             </Route>
             <Route path={"/admin"} element={<AdminRoute />}>
-                <Route path={"/admin/photo-management"} element={<PhotoManagementScreen />} />
-                <Route path={"/admin/photo-management/addPhoto"} element={<AddPhoto />} />
-                <Route path={"/admin/resource-management/photos/:photoId"} element={<UpdatePhoto />} />
+                <Route path={"/admin/resource-management"} element={<ResourceManagementScreen />} />
+                <Route path={"/admin/resource-management/photos/addPhoto"} element={<AddPhotoScreen />} />
+                <Route path={"/admin/resource-management/photos/:photoId"} element={<UpdatePhotoScreen />} />
+                <Route path={"/admin/resource-management/videos/addVideo"} element={<AddVideoScreen />} />
+                <Route path={"/admin/resource-management/videos/:videoId"} element={<UpdateVideoScreen />} />
             </Route>
+            <Route path={"/videos"} element={<VideoScreen />} />
         </Route>
     )
 );

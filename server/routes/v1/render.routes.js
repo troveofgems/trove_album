@@ -1,7 +1,7 @@
 import express from 'express';
 import {OnRenderHealthCheckEndpoint} from "../../controllers/onRender.controllers.js";
 
-const onRenderRouter = express.Router();
+const onRenderServiceRouter = express.Router();
 
 /**
  * @swagger
@@ -17,8 +17,8 @@ const onRenderRouter = express.Router();
  *       '500':
  *         description: Internal server error
  */
-onRenderRouter
+onRenderServiceRouter
     .route("/health-check")
     .get(OnRenderHealthCheckEndpoint);
 
-export default onRenderRouter;
+export default onRenderServiceRouter;

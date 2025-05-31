@@ -1,21 +1,17 @@
 import express from 'express';
 import { attachUserData } from "../../middleware/jwt.middleware.js";
-import { fetchGalleryPhotos, fetchPhotoById } from "../../controllers/gallery.controllers.js";
-import {fetchVideos} from "../../controllers/video.controllers.js";
+import { fetchVideos, fetchVideoById } from "../../controllers/video.controllers.js";
 
-const galleryRouter = express.Router();
+const videoRouter = express.Router();
 
-/**
- * Photo Routes
- * */
-galleryRouter
-    .route("/photos")
+videoRouter
+    .route("/")
     /**
      * @swagger
-     * /v1/api/gallery/photos:
+     * /v1/api/gallery/videos:
      *   get:
      *     tags:
-     *      - Photo Album - Public
+     *      - Videos - Public
      *     summary: Fetch Full Album
      *     description: Fetches all photos from the gallery
      *     parameters:
@@ -111,16 +107,16 @@ galleryRouter
      *       '500':
      *         description: Internal server error
      */
-    .get(attachUserData, fetchGalleryPhotos);
+    .get(attachUserData, fetchVideos);
 
-galleryRouter
-    .route("/photos/:id")
+videoRouter
+    .route("/:id")
     /**
      * @swagger
-     * /v1/api/gallery/photos/{id}:
+     * /v1/api/gallery/videos/{id}:
      *   get:
      *     tags:
-     *      - Photo Album - Public
+     *      - Videos - Public
      *     summary: Fetch Photo By id From Photo Album
      *     description: Fetches A Single Photo By Its id From The Photo Album
      *     parameters:
@@ -144,13 +140,6 @@ galleryRouter
      *       '500':
      *         description: Internal server error
      */
-    .get(fetchPhotoById);
+    .get(fetchVideoById);
 
-/**
- * Video Streaming Routes
- * */
-galleryRouter
-    .route("/videos")
-    .get(fetchVideos);
-
-export default galleryRouter;
+export default videoRouter;

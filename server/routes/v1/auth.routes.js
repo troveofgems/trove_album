@@ -2,7 +2,7 @@ import express from "express";
 import {handleLogin, handleLogout} from "../../controllers/auth.controllers.js";
 import { protectRoute } from "../../middleware/jwt.middleware.js";
 
-const authRoutes = express.Router();
+const authRouter = express.Router();
 
 /**
  * @swagger
@@ -134,7 +134,7 @@ const authRoutes = express.Router();
  *                   type: string
  *                   example: "Error: Internal Server Error..."
  */
-authRoutes
+authRouter
     .route("/login")
     .post(handleLogin);
 
@@ -212,8 +212,8 @@ authRoutes
  *                   type: string
  *                   example: "Error: Internal Server Error..."
  */
-authRoutes
+authRouter
     .route("/logout")
     .post(protectRoute, handleLogout);
 
-export default authRoutes;
+export default authRouter;

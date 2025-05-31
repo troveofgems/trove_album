@@ -4,7 +4,8 @@ export const BASE_URL = "";
 // Redux to BE URL Paths
 export const ADMIN_URL = "/v1/api/admin"
 export const USER_URL = "/v1/api/auth";
-export const GALLERY_URL = "/v1/api/gallery/photos";
+export const PHOTO_GALLERY_URL = "/v1/api/gallery/photos";
+export const VIDEO_GALLERY_URL = "/v1/api/gallery/videos";
 //export const HEALTH_URL = "/v1/api/onRender";
 
 // Application Successes

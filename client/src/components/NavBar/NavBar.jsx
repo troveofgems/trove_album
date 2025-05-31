@@ -82,21 +82,21 @@ export const NavBar = ({ onViewChange, setIsHovering }) => {
                                     <Link to={"/"} className={"innerLink dropdown-item"} onClick={() => onViewChange("Travel")}>
                                         Travel
                                     </Link>
-                                    <Link to={"/"} className={"innerLink dropdown-item"} onClick={() => onViewChange("Videos")}>
+                                    <Link to={"/videos"} className={"innerLink dropdown-item"} onClick={() => onViewChange("Videos")}>
                                         Videos
                                     </Link>
                                     <NavDropdown.Divider />
                                     {
                                         !userInfo ? (
                                             <>
-                                                <Link to={"/login"} className={"dropdown-item"}>
+                                                <Link to={"/auth/login"} className={"dropdown-item"}>
                                                     Login
                                                 </Link>
                                             </>
                                         ) : (
                                             <>
                                                 {userInfo?.data?.isAdmin ? (
-                                                    <Link to={"/admin/photo-management"} className={"dropdown-item"}>
+                                                    <Link to={"/admin/resource-management"} className={"dropdown-item"}>
                                                         Resource Management
                                                     </Link>
                                                 ) : (
@@ -114,10 +114,10 @@ export const NavBar = ({ onViewChange, setIsHovering }) => {
                                     <NavDropdown.Item href="https://www.thetroveofgems.tech">
                                         About
                                     </NavDropdown.Item>
-                                    <Link to={"/site-filters-explanation"} className={"dropdown-item"}>
+                                    <Link to={"/about/site-filters-explanation"} className={"dropdown-item"}>
                                         About Site Filters
                                     </Link>
-                                    <Link to={"/analytics"} className={"dropdown-item"}>
+                                    <Link to={"/about/analytics"} className={"dropdown-item"}>
                                         Analytics
                                     </Link>
                                     <NavDropdown.Item

@@ -3,12 +3,12 @@ import "react-photo-album/masonry.css";
 import "yet-another-react-lightbox/styles.css";
 import "yet-another-react-lightbox/plugins/captions.css";
 
-import {useFetchPhotosInfiniteQuery} from "../../redux/slices/gallery.api.slice";
+import {useFetchPhotosInfiniteQuery} from "../../redux/slices/photo.api.slice";
 import {mapPhotoData} from "../../utils/photo.utils";
 import {LightBoxShell} from "../LightboxShell/LightBoxShell";
-import {CacheStatusLabelWrapper} from "../CacheStatusLabelWrapper/CacheStatusLabelWrapper";
+import {CacheStatusLabelWrapper} from "../shared/CacheStatusLabelWrapper/CacheStatusLabelWrapper";
 import {Loader} from "../shared/Loader/Loader";
-import {Gallery} from "./Views/Gallery";
+import {PhotoGallery} from "./Gallery/PhotoGallery";
 
 import "./Album.css";
 
@@ -150,17 +150,18 @@ export const Album = ({ viewingGallery, filters }) => {
                     {viewingGallery === "All Items" ? "Full " : viewingGallery} Gallery
                 </h2>
                 <CacheStatusLabelWrapper
-                    infinitePhotoData={infinitePhotoData}
+                    data={infinitePhotoData}
                     error={error}
                     isLoading={isLoading}
                     isFetching={isFetching}
+                    cacheItem={"Photos"}
                 />
             </div>
             {
                 (isLoading || !infinitePhotoData || isFetching) ?
                     <Loader /> :
                     <>
-                        <Gallery
+                        <PhotoGallery
                             viewingGallery={viewingGallery}
                             infinitePhotoData={infinitePhotoData}
                             handleFetchMorePhotos={handleFetchMorePhotos}

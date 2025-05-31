@@ -4,6 +4,7 @@ import { default as AuthRoutes } from "./v1/auth.routes.js";
 import { default as AdminRoutes } from "./v1/admin.routes.js";
 import { default as GalleryRoutes } from "./v1/gallery.routes.js";
 import { default as OnRenderRoutes } from "./v1/render.routes.js";
+import { default as VideoRoutes } from "./v1/video.routes.js";
 
 import {swaggerDocs} from "../config/swagger/swagger.config.js";
 import {errorHandler, notFound} from "../middleware/error.middleware.js";
@@ -29,6 +30,10 @@ export const mountMainRouter = (app) => {
             {
                 route: `/${apiVersionRoute}/onRender`,
                 routeLoader: OnRenderRoutes
+            },
+            {
+                route: `/${apiVersionRoute}/videos`,
+                routeLoader: VideoRoutes
             }
     ];
 
