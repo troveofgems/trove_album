@@ -79,6 +79,10 @@ export const enableApplicationSecurity = (app) => {
                 'https://res.cloudinary.com',
                 'https://i.ibb.co',
                 'data:'
+            ],
+            frameSrc: [
+                "'self'",
+                'https://embed.api.video'
             ]
         }
     };
