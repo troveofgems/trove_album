@@ -23,7 +23,7 @@ export const probeForCache = async (req) => {
 };
 export const cacheResults = async (req, dataToCache, expires = 1, cacheKey) => {
     if(enforceCaching) {
-        await req.app.redisClient.set(cacheKey, JSON.stringify(dataToCache));
+        //await req.app.redisClient.set(cacheKey, JSON.stringify(dataToCache));
     }
     return req;
 };

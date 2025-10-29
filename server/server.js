@@ -16,7 +16,7 @@ connectDB()
     .then((dbConn) => {
         connections.dbConn = dbConn;
         setApplicationStandardsAndLimits(app);
-        setRedisClientForApplication(app);
+        //setRedisClientForApplication(app);
         enableApplicationSecurity(app);
         mountMainRouter(app);
         assignAssets(app);

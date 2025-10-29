@@ -16,8 +16,8 @@ import {sendResponse} from "./send.controller.utils.js";
 // @access Public
 export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
     const // First Check for Redis Cache Entry & Construct Appropriate Cache Data
-        cacheProbe = await probeForCache(req),
-        sendCachedResponse = cacheProbe.cacheFound && !!cacheProbe.data,
+        cacheProbe = false, //await probeForCache(req),
+        sendCachedResponse = false, //cacheProbe.cacheFound && !!cacheProbe.data,
         cacheCallResults = !cacheProbe.cacheFound && cacheProbe.data === null;
 
     if(sendCachedResponse) {
@@ -57,7 +57,7 @@ export const fetchGalleryPhotos = asyncHandler(async (req, res, next) => {
     if(processTravelPhotos) { createMapForTravelPhotos(gallery); }
 
     // Set Cache via Background Process
-    if(cacheCallResults) { cacheResults(req, gallery, 500, cacheProbe.cacheKey); }
+    /*if(cacheCallResults) { cacheResults(req, gallery, 500, cacheProbe.cacheKey); }*/
 
     return sendResponse(
         res,
