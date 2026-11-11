@@ -3,14 +3,7 @@ import mongoose from "mongoose";
 const connectDB = async () => {
     console.log("=> Mongo DB");
     try {
-        const conn = await mongoose.connect(process.env.MONGO_URI,{
-            auth: {
-              authSource: process.env.MONGO_AUTH_SOURCE,
-            },
-            user: process.env.MONGO_USER,
-            pass: process.env.MONGO_PASS,
-            ssl: true
-        });
+        const conn = await mongoose.connect(process.env.MONGO_URI);
         console.log("Connected To Database!\n");
         return conn;
     } catch(err) {
@@ -20,3 +13,5 @@ const connectDB = async () => {
 };
 
 export default connectDB;
+
+//await mongoose.connect("mongodb+srv://dkgrecodev:<db_password>@troveofgems.i32az.mongodb.net/");
